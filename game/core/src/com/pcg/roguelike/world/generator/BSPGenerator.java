@@ -40,13 +40,22 @@ public class BSPGenerator {
                 TiledMapTileLayer.Cell cell = new TiledMapTileLayer.Cell();
 
                 switch (m[x][y]) {
-                    case 0:
-                        cell.setTile(new StaticTiledMapTile(splitTiles[0][2]));
-                        break;
+                    case 0: {
+                        StaticTiledMapTile tile = new StaticTiledMapTile(splitTiles[0][2]);
+                        tile.setId(0);
 
-                    case 1:
-                        cell.setTile(new StaticTiledMapTile(splitTiles[0][0]));
-                        break;
+                        cell.setTile(tile);
+                    }
+                    break;
+
+                    case 1: {
+                        StaticTiledMapTile tile = new StaticTiledMapTile(splitTiles[0][0]);
+                        tile.setId(1);
+                        tile.getProperties().put("passable", null);
+
+                        cell.setTile(tile);
+                    }
+                    break;
                 }
 
                 layer.setCell(x, y, cell);
@@ -58,9 +67,10 @@ public class BSPGenerator {
     }
 
     private enum Orientation {
+
         Horizontal, Vertical
     };
-    
+
     private int height, width, minimalRoomSize, differenceDivider, minSpace = 1;
     private BSPTree bspTree;
     private Random rnd;

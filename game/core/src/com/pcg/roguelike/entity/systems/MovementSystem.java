@@ -15,14 +15,19 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.pcg.roguelike.entity.components.MovementComponent;
 import com.pcg.roguelike.entity.components.PositionComponent;
+import com.pcg.roguelike.world.World;
 
 public class MovementSystem extends IteratingSystem {
 
     private ComponentMapper<PositionComponent> pm = ComponentMapper.getFor(PositionComponent.class);
     private ComponentMapper<MovementComponent> mm = ComponentMapper.getFor(MovementComponent.class);
 
-    public MovementSystem() {
+    private World world;
+    
+    public MovementSystem(World world) {
         super(Family.all(PositionComponent.class, MovementComponent.class).get());
+        
+        this.world = world;        
     }
 
     @Override
