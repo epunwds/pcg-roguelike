@@ -17,6 +17,7 @@
  */
 package com.pcg.roguelike;
 
+import com.badlogic.ashley.core.PooledEngine;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
@@ -35,6 +36,8 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
 import com.badlogic.gdx.math.Vector3;
+import com.pcg.roguelike.entity.systems.MovementSystem;
+import com.pcg.roguelike.entity.systems.RenderingSystem;
 import com.pcg.roguelike.world.World;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.styled.TilesetType;
@@ -49,10 +52,13 @@ public class Roguelike extends ApplicationAdapter {
     private SpriteBatch batch;    
     
     private World world;
+    private PooledEngine engine;
     
     @Override
     public void create() {
         world = new World();
+        
+        world.create();
         
         float w = Gdx.graphics.getWidth();
         float h = Gdx.graphics.getHeight();
@@ -66,6 +72,10 @@ public class Roguelike extends ApplicationAdapter {
         font = new BitmapFont();
         batch = new SpriteBatch();
         renderer = new OrthogonalTiledMapRenderer(world.getMap());
+        
+        engine = new PooledEngine();
+        engine.addSystem(new RenderingSystem(camera));
+        engine.addSystem(new MovementSystem());        
     }
 
     @Override
@@ -78,6 +88,8 @@ public class Roguelike extends ApplicationAdapter {
         batch.begin();
         font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 20);
         batch.end();
+        
+        engine.update(Gdx.graphics.getDeltaTime());        
     }
 
     public class OrthoCamController extends InputAdapter {
