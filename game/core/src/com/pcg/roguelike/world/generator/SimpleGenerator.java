@@ -13,13 +13,12 @@ import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.styled.TilesetType;
 import squidpony.squidmath.RNG;
 
-public class SimpleGenerator implements ILevelGen {
-
-    private Texture tiles;
-    private char[][] decoDungeon, bareDungeon, lineDungeon, spaces;
-
-    @Override
-    public void generateLevel(World world) {
+public class SimpleGenerator {
+    
+    public static void generateLevel(World world) {
+        Texture tiles;
+        char[][] decoDungeon, bareDungeon, lineDungeon, spaces;
+    
         TiledMap map = new TiledMap();
 
         DungeonGenerator dungeonGen = new DungeonGenerator(World.WIDTH, World.HEIGHT, new RNG());
