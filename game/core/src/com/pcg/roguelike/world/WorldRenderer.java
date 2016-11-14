@@ -1,5 +1,6 @@
 package com.pcg.roguelike.world;
 
+import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.pcg.roguelike.world.generator.BSPGenerator;
 import com.badlogic.ashley.core.Entity;
@@ -15,6 +16,7 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
+import com.pcg.roguelike.entity.components.PositionComponent;
 import com.pcg.roguelike.entity.systems.MovementSystem;
 import com.pcg.roguelike.entity.systems.RenderingSystem;
 
@@ -39,6 +41,8 @@ public class WorldRenderer {
         mapRenderer.setView(camera);
         mapRenderer.render();
 
+        world.update();
+        
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setProjectionMatrix(camera.combined);
         for (int x = 0; x < World.WIDTH; x++) {
@@ -52,6 +56,10 @@ public class WorldRenderer {
                 shapeRenderer.rect(x * 32 + 5, y * 32 + 5, 27, 27);
             }
         }
+        
+        ComponentMapper<PositionComponent> pm = ComponentMapper.getFor(PositionComponent.class);
+        PositionComponent position = pm.get(world.getPlayer());
+        shapeRenderer.circle(position.x, position.y, 5);
 
         shapeRenderer.end();
     }

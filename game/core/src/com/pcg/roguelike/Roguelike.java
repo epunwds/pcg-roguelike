@@ -17,37 +17,21 @@
  */
 package com.pcg.roguelike;
 
-import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.core.PooledEngine;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.maps.MapLayers;
-import com.badlogic.gdx.maps.tiled.TiledMap;
-import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
-import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
-import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.pcg.roguelike.entity.components.MovementComponent;
-import com.pcg.roguelike.entity.systems.MovementSystem;
-import com.pcg.roguelike.entity.systems.RenderingSystem;
 import com.pcg.roguelike.world.World;
 import com.pcg.roguelike.world.WorldRenderer;
-import squidpony.squidgrid.mapping.DungeonGenerator;
-import squidpony.squidgrid.mapping.styled.TilesetType;
-import squidpony.squidmath.RNG;
 
 public class Roguelike extends ApplicationAdapter {
 
@@ -86,9 +70,8 @@ public class Roguelike extends ApplicationAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         camera.update();
 
-        world.update();
         worldRenderer.render(camera, batch);
-
+        
         batch.begin();
         font.setColor(Color.WHITE);
         font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 20);
@@ -126,11 +109,53 @@ public class Roguelike extends ApplicationAdapter {
 
         @Override
         public boolean keyDown(int keycode) {
+            MovementComponent mc = world.getPlayer().getComponent(MovementComponent.class);
+                        
+            switch (keycode) {
+                case Keys.W:
+                case Keys.UP:
+                    mc.velocityY = 45f;
+                    break;
+                    
+                case Keys.S:
+                case Keys.DOWN:                    
+                    mc.velocityY = -45f;
+                    break;  
+                    
+                case Keys.A:
+                case Keys.LEFT:
+                    mc.velocityX = -45f;
+                    break;
+                    
+                case Keys.D:
+                case Keys.RIGHT:
+                    mc.velocityX = 45f;
+                    break;                    
+            }
+            
             return false;
         }
 
         @Override
         public boolean keyUp(int keycode) {
+            MovementComponent mc = world.getPlayer().getComponent(MovementComponent.class);
+            
+            switch (keycode) {
+                case Keys.W:
+                case Keys.UP:
+                case Keys.S:
+                case Keys.DOWN:                    
+                    mc.velocityY = 0;
+                    break;
+                    
+                case Keys.A:
+                case Keys.LEFT:
+                case Keys.D:
+                case Keys.RIGHT:
+                    mc.velocityX = 0;
+                    break;
+            }
+            
             return false;
         }
     }

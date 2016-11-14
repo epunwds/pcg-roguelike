@@ -52,10 +52,10 @@ public class RenderingSystem extends EntitySystem {
 
         for (int i = 0; i < entities.size(); ++i) {
             Entity e = entities.get(i);
-
+            
             position = pm.get(e);
-            visual = vm.get(e);
-
+            visual = vm.get(e);         
+            
             batch.draw(visual.region, position.x, position.y);
         }
 
