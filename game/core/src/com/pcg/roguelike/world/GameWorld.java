@@ -58,11 +58,11 @@ public class GameWorld {
     public void create() {
         int[][] mapBlueprint = gen.generateMap();
 
-        //getting textures
+        /* Tiles textures */
         Texture tiles = new Texture(Gdx.files.internal("tiles.png"));
         TextureRegion[][] splitTiles = TextureRegion.split(tiles, TILE_SIZE, TILE_SIZE);
 
-        //some confusing shit right here
+        /* Creating TiledMap and filling it with tiles corresponding to the blueprint */
         TiledMap tiledMap = new TiledMap();
         TiledMapTileLayer layer = new TiledMapTileLayer(WIDTH, HEIGHT, TILE_SIZE, TILE_SIZE);
 
@@ -93,6 +93,7 @@ public class GameWorld {
                 layer.setCell(x, y, cell);
             }
         }
+        
         rectShape.dispose();
         tiledMap.getLayers().add(layer);
         map = tiledMap;

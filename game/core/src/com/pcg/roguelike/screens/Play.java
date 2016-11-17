@@ -23,12 +23,12 @@ import com.pcg.roguelike.world.WorldRenderer;
  */
 public class Play implements Screen {
 
-    private static final float TIMESTEP = 1/60f;
+    private static final float TIMESTEP = 1 / 60f;
     private static final int VELOCITY_ITERATIONS = 8, POSITION_ITERATIONS = 3;
     private OrthographicCamera camera;
     private Box2DDebugRenderer debugRenderer;
     private BitmapFont font;
-    private SpriteBatch batch;
+    private SpriteBatch batch, batch2;
     private GameWorld gameWorld;
     private World world;
     private WorldRenderer worldRenderer;
@@ -39,7 +39,7 @@ public class Play implements Screen {
     private Vector2 movement = new Vector2();
     private int heroSpeed = 500;
     private Sprite heroSprite;
-
+    
     @Override
     public void show() {
         world = new World(new Vector2(0, 0), true);
@@ -60,6 +60,7 @@ public class Play implements Screen {
 
         font = new BitmapFont();
         batch = new SpriteBatch();
+        batch2 = new SpriteBatch();
 
         //HERO
         //body
@@ -99,7 +100,6 @@ public class Play implements Screen {
         camera.update();
 
         worldRenderer.render(camera, batch);
-
         debugRenderer.render(world, camera.combined);
 
         world.step(TIMESTEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
@@ -108,15 +108,17 @@ public class Play implements Screen {
         sprite.setPosition(hero.getPosition().x - sprite.getWidth() / 2, hero.getPosition().y - sprite.getHeight() / 2);
         sprite.setRotation(hero.getAngle() * MathUtils.radiansToDegrees);
 
-        batch.setProjectionMatrix(camera.combined);
-        batch.begin();
+        batch2.begin();
         font.setColor(Color.WHITE);
-        font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 20);
+        font.draw(batch2, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 20);
+        batch2.end();        
+        
+        batch.begin();
+        batch.setProjectionMatrix(camera.combined);
         sprite.draw(batch);
         //hero sprite rendering
-
-        batch.end();
-
+        batch.end();        
+        
         hero.applyLinearImpulse(movement, hero.getPosition(), true);
 
     }
