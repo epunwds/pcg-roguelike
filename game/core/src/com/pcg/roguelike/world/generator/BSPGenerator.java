@@ -4,14 +4,6 @@ package com.pcg.roguelike.world.generator;
  *
  * @author Senya
  */
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.maps.MapLayers;
-import com.badlogic.gdx.maps.tiled.TiledMap;
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
-import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
-import com.pcg.roguelike.world.World;
 import java.util.Random;
 
 public class BSPGenerator {
@@ -24,54 +16,17 @@ public class BSPGenerator {
         return map;
     }
 
-    static public void generateLevel(World world) {
-        BSPGenerator gen = new BSPGenerator(World.WIDTH, World.HEIGHT, 5, 3, new Random());
-        TiledMap tiledMap = new TiledMap();
-
-        int[][] m = gen.generateMap();
-        Texture tiles;
-
-        tiles = new Texture(Gdx.files.internal("tiles.png"));
-        TextureRegion[][] splitTiles = TextureRegion.split(tiles, 32, 32);
-        MapLayers layers = tiledMap.getLayers();
-        TiledMapTileLayer layer = new TiledMapTileLayer(World.WIDTH, World.HEIGHT, 32, 32);
-        for (int x = 0; x < World.WIDTH; x++) {
-            for (int y = 0; y < World.HEIGHT; y++) {
-                TiledMapTileLayer.Cell cell = new TiledMapTileLayer.Cell();
-
-                switch (m[x][y]) {
-                    case 0: {
-                        StaticTiledMapTile tile = new StaticTiledMapTile(splitTiles[0][2]);
-                        tile.setId(0);
-
-                        cell.setTile(tile);
-                    }
-                    break;
-
-                    case 1: {
-                        StaticTiledMapTile tile = new StaticTiledMapTile(splitTiles[0][0]);
-                        tile.setId(1);
-                        tile.getProperties().put("passable", null);
-
-                        cell.setTile(tile);
-                    }
-                    break;
-                }
-
-                layer.setCell(x, y, cell);
-            }
-        }
-
-        layers.add(layer);
-        world.setMap(tiledMap);
-    }
-
     private enum Orientation {
 
         Horizontal, Vertical
     };
 
     private int height, width, minimalRoomSize, differenceDivider, minSpace = 1;
+
+    public BSPTree getBspTree() {
+        return bspTree;
+    }
+
     private BSPTree bspTree;
     private Random rnd;
     private int[][] map;
