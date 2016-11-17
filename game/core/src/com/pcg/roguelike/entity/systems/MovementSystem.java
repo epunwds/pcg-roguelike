@@ -17,7 +17,7 @@ import com.pcg.roguelike.entity.components.BobComponent;
 import com.pcg.roguelike.entity.components.CollidableComponent;
 import com.pcg.roguelike.entity.components.MovementComponent;
 import com.pcg.roguelike.entity.components.PositionComponent;
-import com.pcg.roguelike.world.World;
+import com.pcg.roguelike.world.CasualWorld;
 
 public class MovementSystem extends IteratingSystem {
 
@@ -26,12 +26,12 @@ public class MovementSystem extends IteratingSystem {
     private final ComponentMapper<CollidableComponent> cm = ComponentMapper.getFor(CollidableComponent.class);
     private final ComponentMapper<BobComponent> bm = ComponentMapper.getFor(BobComponent.class);
 
-    private final World world;
+    private final CasualWorld casualWorld;
 
-    public MovementSystem(World world) {
+    public MovementSystem(CasualWorld casualWorld) {
         super(Family.all(PositionComponent.class, MovementComponent.class).get());
 
-        this.world = world;
+        this.casualWorld = casualWorld;
     }
 
     @Override
@@ -47,10 +47,10 @@ public class MovementSystem extends IteratingSystem {
         boolean canMoveX = true, canMoveY = true;
 
         if (collidable != null && collidable.collideWithTiles) {     
-            int tileX = (int) Math.floor((newX + bc.bob.width / 2) / World.CELL_SIZE);
-            int tileY = (int) Math.floor((newY + bc.bob.height / 2) / World.CELL_SIZE);
+            int tileX = (int) Math.floor((newX + bc.bob.width / 2) / CasualWorld.CELL_SIZE);
+            int tileY = (int) Math.floor((newY + bc.bob.height / 2) / CasualWorld.CELL_SIZE);
 
-            if (!world.isCellPassable(tileX, tileY)) {
+            if (!casualWorld.isCellPassable(tileX, tileY)) {
                 canMoveX = false;
                 canMoveY = false;
             }

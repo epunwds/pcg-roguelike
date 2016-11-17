@@ -1,27 +1,26 @@
 package com.pcg.roguelike.world.generator;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.MapLayers;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
-import com.pcg.roguelike.world.World;
+import com.pcg.roguelike.world.CasualWorld;
 import squidpony.squidgrid.mapping.DungeonGenerator;
 import squidpony.squidgrid.mapping.styled.TilesetType;
 import squidpony.squidmath.RNG;
 
 public class SimpleGenerator {
     
-    public static void generateLevel(World world) {
+    public static void generateLevel(CasualWorld casualWorld) {
         Texture tiles;
         char[][] decoDungeon, bareDungeon, lineDungeon, spaces;
     
         TiledMap map = new TiledMap();
 
-        DungeonGenerator dungeonGen = new DungeonGenerator(World.WIDTH, World.HEIGHT, new RNG());
+        DungeonGenerator dungeonGen = new DungeonGenerator(CasualWorld.WIDTH, CasualWorld.HEIGHT, new RNG());
         //uncomment this next line to randomly add water to the dungeon in pools.
         dungeonGen.addWater(15);
         dungeonGen.addGrass(20);
@@ -36,9 +35,9 @@ public class SimpleGenerator {
             tiles = new Texture(Gdx.files.internal("tiles.png"));
             TextureRegion[][] splitTiles = TextureRegion.split(tiles, 32, 32);
             MapLayers layers = map.getLayers();
-            TiledMapTileLayer layer = new TiledMapTileLayer(World.WIDTH, World.HEIGHT, 32, 32);
-            for (int x = 0; x < World.WIDTH; x++) {
-                for (int y = 0; y < World.HEIGHT; y++) {
+            TiledMapTileLayer layer = new TiledMapTileLayer(CasualWorld.WIDTH, CasualWorld.HEIGHT, 32, 32);
+            for (int x = 0; x < CasualWorld.WIDTH; x++) {
+                for (int y = 0; y < CasualWorld.HEIGHT; y++) {
                     TiledMapTileLayer.Cell cell = new TiledMapTileLayer.Cell();
 
                     switch (decoDungeon[x][y]) {
@@ -75,7 +74,7 @@ public class SimpleGenerator {
             layers.add(layer);
         }
 
-        world.setMap(map);
+        casualWorld.setMap(map);
     }
 
 }

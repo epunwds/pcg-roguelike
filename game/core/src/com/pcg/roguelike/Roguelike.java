@@ -17,146 +17,40 @@
  */
 package com.pcg.roguelike;
 
-import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Vector3;
-import com.pcg.roguelike.entity.components.MovementComponent;
-import com.pcg.roguelike.world.World;
-import com.pcg.roguelike.world.WorldRenderer;
-
-public class Roguelike extends ApplicationAdapter {
-
-    private OrthographicCamera camera;
-
-    private BitmapFont font;
-    private SpriteBatch batch;
-    private ShapeRenderer shapeRenderer;
-
-    private World world;
-    private WorldRenderer worldRenderer;
+import com.badlogic.gdx.Game;
+import com.pcg.roguelike.screens.Play;
+/**
+ * Created by BugDeveloper on 17.11.2016.
+ */
+public class Roguelike extends Game {
 
     @Override
     public void create() {
-        float w = Gdx.graphics.getWidth();
-        float h = Gdx.graphics.getHeight();
+        setScreen(new Play());
+    }
 
-        camera = new OrthographicCamera();
-        camera.setToOrtho(false, w, h);
-        camera.update();
-
-        Gdx.input.setInputProcessor(new OrthoCamController(camera));
-
-        world = new World(camera);
-        world.create();
-
-        worldRenderer = new WorldRenderer(world);
-
-        font = new BitmapFont();
-        batch = new SpriteBatch();
+    @Override
+    public void resize(int width, int height) {
+        super.resize(width, height);
     }
 
     @Override
     public void render() {
-        Gdx.gl.glClearColor(100f / 255f, 100f / 255f, 250f / 255f, 1f);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        camera.update();
-
-        worldRenderer.render(camera, batch);
-        
-        batch.begin();
-        font.setColor(Color.WHITE);
-        font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 20);
-        batch.end();
+        super.render();
     }
 
-    public class OrthoCamController extends InputAdapter {
+    @Override
+    public void pause() {
+        super.pause();
+    }
 
-        final OrthographicCamera camera;
-        final Vector3 curr = new Vector3();
-        final Vector3 last = new Vector3(-1, -1, -1);
-        final Vector3 delta = new Vector3();
+    @Override
+    public void resume() {
+        super.resume();
+    }
 
-        public OrthoCamController(OrthographicCamera camera) {
-            this.camera = camera;
-        }
-
-        @Override
-        public boolean touchDragged(int x, int y, int pointer) {
-            camera.unproject(curr.set(x, y, 0));
-            if (!(last.x == -1 && last.y == -1 && last.z == -1)) {
-                camera.unproject(delta.set(last.x, last.y, 0));
-                delta.sub(curr);
-                camera.position.add(delta.x, delta.y, 0);
-            }
-            last.set(x, y, 0);
-            return false;
-        }
-
-        @Override
-        public boolean touchUp(int x, int y, int pointer, int button) {
-            last.set(-1, -1, -1);
-            return false;
-        }
-
-        @Override
-        public boolean keyDown(int keycode) {
-            MovementComponent mc = world.getPlayer().getComponent(MovementComponent.class);
-                        
-            switch (keycode) {
-                case Keys.W:
-                case Keys.UP:
-                    mc.velocityY = 45f;
-                    break;
-                    
-                case Keys.S:
-                case Keys.DOWN:                    
-                    mc.velocityY = -45f;
-                    break;  
-                    
-                case Keys.A:
-                case Keys.LEFT:
-                    mc.velocityX = -45f;
-                    break;
-                    
-                case Keys.D:
-                case Keys.RIGHT:
-                    mc.velocityX = 45f;
-                    break;                    
-            }
-            
-            return false;
-        }
-
-        @Override
-        public boolean keyUp(int keycode) {
-            MovementComponent mc = world.getPlayer().getComponent(MovementComponent.class);
-            
-            switch (keycode) {
-                case Keys.W:
-                case Keys.UP:
-                case Keys.S:
-                case Keys.DOWN:                    
-                    mc.velocityY = 0;
-                    break;
-                    
-                case Keys.A:
-                case Keys.LEFT:
-                case Keys.D:
-                case Keys.RIGHT:
-                    mc.velocityX = 0;
-                    break;
-            }
-            
-            return false;
-        }
+    @Override
+    public void dispose() {
+        super.dispose();
     }
 }
