@@ -7,8 +7,12 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.pcg.roguelike.world.GameWorld;
@@ -20,8 +24,7 @@ import com.pcg.roguelike.world.WorldRenderer;
 public class Play implements Screen {
 
     private static final float TIMESTEP = 1/60f;
-    private static final int VELOCITYITERATIONS = 8, POSITIONITERATIONS = 3;
-
+    private static final int VELOCITY_ITERATIONS = 8, POSITION_ITERATIONS = 3;
     private OrthographicCamera camera;
     private Box2DDebugRenderer debugRenderer;
     private BitmapFont font;
@@ -34,7 +37,8 @@ public class Play implements Screen {
 
     private Body hero;
     private Vector2 movement = new Vector2();
-    private int heroSpeed = 5000;
+    private int heroSpeed = 500;
+    private Sprite heroSprite;
 
     @Override
     public void show() {
@@ -68,15 +72,23 @@ public class Play implements Screen {
 
         //fixture
         fixtureDef.shape = rectShape;
+        fixtureDef.density = 0.01f;
+        fixtureDef.friction = 0.25f;
 
-
-        //creating
+        //initialization
         hero = world.createBody(bodyDef);
         hero.createFixture(fixtureDef);
 
+        //sprites assigning
+        Texture tiles = new Texture(Gdx.files.internal("tiles.png"));
+        TextureRegion[][] splitTiles = TextureRegion.split(tiles, GameWorld.TILE_SIZE, GameWorld.TILE_SIZE);
+        heroSprite = new Sprite(splitTiles[1][0]);
+        heroSprite.setSize(8 * 2, 8 * 2);
+        heroSprite.setOrigin(heroSprite.getWidth() / 2, heroSprite.getHeight() / 2);
+        hero.setUserData(heroSprite);
+
         rectShape.dispose();
     }
-
 
     @Override
     public void render(float delta) {
@@ -90,16 +102,24 @@ public class Play implements Screen {
 
         debugRenderer.render(world, camera.combined);
 
-        world.step(TIMESTEP, VELOCITYITERATIONS, POSITIONITERATIONS);
+        world.step(TIMESTEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
 
+        Sprite sprite = (Sprite) hero.getUserData();
+        sprite.setPosition(hero.getPosition().x - sprite.getWidth() / 2, hero.getPosition().y - sprite.getHeight() / 2);
+        sprite.setRotation(hero.getAngle() * MathUtils.radiansToDegrees);
+
+        batch.setProjectionMatrix(camera.combined);
         batch.begin();
         font.setColor(Color.WHITE);
         font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 20);
+        sprite.draw(batch);
+        //hero sprite rendering
+
         batch.end();
 
-        hero.applyForceToCenter(movement, true);
-    }
+        hero.applyLinearImpulse(movement, hero.getPosition(), true);
 
+    }
 
 
     @Override
@@ -124,7 +144,9 @@ public class Play implements Screen {
 
     @Override
     public void dispose() {
-
+        world.dispose();
+        debugRenderer.dispose();
+        heroSprite.getTexture().dispose();
     }
 
     public class Input extends InputAdapter {
@@ -158,13 +180,14 @@ public class Play implements Screen {
                 case Keys.W:
                 case Keys.S:
                     movement.y = 0;
+                    hero.setLinearVelocity(hero.getLinearVelocity().x, 0);
                     break;
 
                 case Keys.A:
                 case Keys.D:
                     movement.x = 0;
+                    hero.setLinearVelocity(0, hero.getLinearVelocity().y);
                     break;
-
             }
             return true;
         }

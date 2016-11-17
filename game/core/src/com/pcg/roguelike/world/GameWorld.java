@@ -45,6 +45,14 @@ public class GameWorld {
         rectShape = new PolygonShape();
         rectShape.setAsBox(TILE_SIZE / 2, TILE_SIZE / 2);
         fixtureDef = new FixtureDef();
+
+        // wall body definition
+        bodyDef.type = BodyDef.BodyType.StaticBody;
+
+        //wall fixture definition
+        fixtureDef.shape = rectShape;
+        fixtureDef.friction = .2f;
+        fixtureDef.restitution = 0;
     }
 
     public void create() {
@@ -69,15 +77,7 @@ public class GameWorld {
                         tile.setId(0);
                         cell.setTile(tile);
 
-                        //body definition
-                        bodyDef.type = BodyDef.BodyType.StaticBody;
                         bodyDef.position.set((x + 0.5f) * TILE_SIZE, (y + 0.5f) * TILE_SIZE);
-
-                        //fixture definition
-                        fixtureDef.shape = rectShape;
-                        fixtureDef.friction = .2f;
-                        fixtureDef.restitution = 0;
-
                         world.createBody(bodyDef).createFixture(fixtureDef);
                     }
                     break;
