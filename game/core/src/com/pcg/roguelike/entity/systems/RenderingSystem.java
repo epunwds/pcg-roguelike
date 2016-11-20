@@ -2,63 +2,80 @@ package com.pcg.roguelike.entity.systems;
 
 /**
  *
- * @author Cr0s
+ * @author cr0s
  */
+import java.util.Comparator;
+
 import com.badlogic.ashley.core.ComponentMapper;
-import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
-import com.badlogic.ashley.utils.ImmutableArray;
+import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.pcg.roguelike.entity.components.PositionComponent;
-import com.pcg.roguelike.entity.components.VisualComponent;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.utils.Array;
+import com.pcg.roguelike.entity.components.SpriteComponent;
 
-public class RenderingSystem extends EntitySystem {
+public class RenderingSystem extends IteratingSystem {
 
-    private ImmutableArray<Entity> entities;
+    static final float FRUSTUM_WIDTH = 10;
+    static final float FRUSTUM_HEIGHT = 15;
+    static final float PIXELS_TO_METRES = 1.0f / 32.0f;
 
     private SpriteBatch batch;
-    private OrthographicCamera camera;
+    private Array<Entity> renderQueue;
+    private Comparator<Entity> comparator;
+    private OrthographicCamera cam;
+    private ComponentMapper<SpriteComponent> sm;
 
-    private ComponentMapper<PositionComponent> pm = ComponentMapper.getFor(PositionComponent.class);
-    private ComponentMapper<VisualComponent> vm = ComponentMapper.getFor(VisualComponent.class);
+    public RenderingSystem(SpriteBatch batch, OrthographicCamera cam) {
+        super(Family.all(SpriteComponent.class).get());
 
-    public RenderingSystem(OrthographicCamera camera) {
-        batch = new SpriteBatch();
-        this.camera = camera;
-    }
+        sm = ComponentMapper.getFor(SpriteComponent.class);
+        renderQueue = new Array<>();
 
-    @Override
-    public void addedToEngine(Engine engine) {
-        entities = engine.getEntitiesFor(Family.all(PositionComponent.class, VisualComponent.class).get());
-    }
+        comparator = new Comparator<Entity>() {
+            @Override
+            public int compare(Entity entityA, Entity entityB) {
+                return (int) Math.signum(sm.get(entityB).zOrder
+                        - sm.get(entityA).zOrder);
+            }
+        };
 
-    @Override
-    public void removedFromEngine(Engine engine) {
-
+        this.batch = batch;
+        this.cam = cam;
     }
 
     @Override
     public void update(float deltaTime) {
-        PositionComponent position;
-        VisualComponent visual;
+        super.update(deltaTime);
 
-        camera.update();
+        renderQueue.sort(comparator);
 
+        cam.update();
+        batch.setProjectionMatrix(cam.combined);
         batch.begin();
-        batch.setProjectionMatrix(camera.combined);
 
-        for (int i = 0; i < entities.size(); ++i) {
-            Entity e = entities.get(i);
-            
-            position = pm.get(e);
-            visual = vm.get(e);         
-            
-            batch.draw(visual.region, position.x, position.y);
+        for (Entity entity : renderQueue) {
+            SpriteComponent tex = sm.get(entity);
+
+            if (tex.s == null) {
+                continue;
+            }
+
+            sm.get(entity).s.draw(batch);
         }
 
         batch.end();
+        renderQueue.clear();
+    }
+
+    @Override
+    public void processEntity(Entity entity, float deltaTime) {
+        renderQueue.add(entity);
+    }
+
+    public OrthographicCamera getCamera() {
+        return cam;
     }
 }

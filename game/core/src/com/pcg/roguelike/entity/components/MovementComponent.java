@@ -1,18 +1,17 @@
 package com.pcg.roguelike.entity.components;
 
+import com.badlogic.ashley.core.Component;
+import com.badlogic.gdx.math.Vector2;
+
 /**
  *
- * @author Cr0s
+ * @author cr0s
  */
-import com.badlogic.ashley.core.Component;
-
 public class MovementComponent implements Component {
 
-    public float velocityX;
-    public float velocityY;
-
-    public MovementComponent(float velocityX, float velocityY) {
-        this.velocityX = velocityX;
-        this.velocityY = velocityY;
-    }
+    public Vector2 movement;
+    
+    public MovementComponent(Vector2 movement) {
+        this.movement = movement;
+    }   
 }
