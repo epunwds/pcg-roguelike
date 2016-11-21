@@ -44,8 +44,6 @@ public class PhysicsSystem extends EntitySystem implements EntityListener {
         
         bc.body = body;
         bc.fixture.shape.dispose();
-        
-        System.out.println("Added entity: " + bc.body);
     }
 
     @Override
