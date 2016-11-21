@@ -132,8 +132,8 @@ public class GameWorld {
 
         /* Texture generation */
         for (int i = 0; i < TEXTURE_VARIATIONS; i++) {
-            groundTiles[i] = new TextureRegion(texGen.generateTexture(Color.LIGHT_GRAY, Color.DARK_GRAY, TEXTURE_ANTIALIASING));
-            wallTiles[i] = new TextureRegion(texGen.generateTexture(Color.GRAY, Color.BLACK, TEXTURE_ANTIALIASING));
+            groundTiles[i] = new TextureRegion(texGen.generatePerlinTexture(Color.LIGHT_GRAY, Color.DARK_GRAY, 1, 0.5));
+            wallTiles[i] = new TextureRegion(texGen.generatePerlinTexture(Color.LIGHT_GRAY, Color.DARK_GRAY, 1, 0.5));
         }
 
         /* Creating TiledMap and filling it with tiles corresponding to the blueprint */
