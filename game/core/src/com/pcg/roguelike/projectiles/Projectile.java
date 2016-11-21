@@ -53,17 +53,20 @@ public abstract class Projectile {
         BodyDef bodyDef = new BodyDef();
         FixtureDef fixtureDef = new FixtureDef();
 
-        bodyDef.type = BodyDef.BodyType.KinematicBody;
+        bodyDef.type = BodyDef.BodyType.DynamicBody;
         bodyDef.position.set(position);
         bodyDef.fixedRotation = true;
         
         //polygon
         PolygonShape rectShape = new PolygonShape();
+        rectShape.setAsBox(sprite.getWidth() / 2, sprite.getHeight() / 2);
         
         //fixture
         fixtureDef.shape = rectShape;
         fixtureDef.density = 0.01f;
         fixtureDef.friction = 0.25f;
+        fixtureDef.restitution = 1.0f;
+        
         fixtureDef.filter.categoryBits = (pm.get(owner) != null) ? GameWorld.CATEGORY_PROJECTILE_PLAYER : GameWorld.CATEGORY_PROJECTILE_ENEMY;
         
         e.add(new BodyComponent(null, bodyDef, fixtureDef));
