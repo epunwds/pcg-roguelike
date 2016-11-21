@@ -1,7 +1,9 @@
 package com.pcg.roguelike.world.generator;
 
 import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.Color;
 
+import java.awt.*;
 import java.util.Random;
 
 /**
@@ -82,11 +84,37 @@ public class TextureGenerator {
             for (int j = 0; j < width; j++) {
                 double xValue = (i - width / 2) / (float) width + turbPower * turbulence(i, j, turbSize);
                 double yValue = (j - height / 2) / (float) height + turbPower * turbulence(height - j, width - i, turbSize);
-                float sineValue = 22.0f * (float) Math.abs(Math.sin(xyPeriod * xValue * Math.PI) + Math.sin(xyPeriod * yValue * Math.PI));
+                float sineValue = (float) Math.abs(Math.sin(xyPeriod * xValue * Math.PI) + Math.sin(xyPeriod * yValue * Math.PI));
                 blueprint[i][j] = sineValue;
             }
 
         return getTexture(gradientStart, gradientEnd, blueprint);
+    }
+
+    public Texture generateSomethingStrangeTexture(float xyPeriod, float turbPower, float turbSize) {
+        Color[][] blueprint = new Color[width][height];
+
+        for (int i = 0; i < height; i++)
+            for (int j = 0; j < width; j++) {
+                double xValue = (i - width / 2) / (float) width + turbPower * turbulence(i, j, turbSize);
+                double yValue = (j - height / 2) / (float) height + turbPower * turbulence(height - j, width - i, turbSize);
+                float sineValue = (float) Math.abs(Math.sin(xyPeriod * xValue * Math.PI) + Math.sin(xyPeriod * yValue * Math.PI));
+                blueprint[i][j] = new Color(java.awt.Color.HSBtoRGB(sineValue, 1, 1));
+            }
+
+        return getTexture(blueprint);
+    }
+
+    private Texture getTexture(Color[][] blueprint) {
+        Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGB888);
+
+        for (int i = 0; i < height; i++)
+            for (int j = 0; j < width; j++) {
+                pixmap.setColor(blueprint[i][j]);
+                pixmap.drawPixel(i, j);
+            }
+
+        return new Texture(pixmap);
     }
 
     private Float smoothNoise(Double x, Double y) {
