@@ -33,11 +33,15 @@ import com.pcg.roguelike.entity.components.PlayerComponent;
 import com.pcg.roguelike.entity.components.ShootingComponent;
 import com.pcg.roguelike.entity.components.SpeedComponent;
 import com.pcg.roguelike.entity.components.SpriteComponent;
+import com.pcg.roguelike.entity.components.WeaponComponent;
 import com.pcg.roguelike.entity.systems.DirectionSystem;
 import com.pcg.roguelike.entity.systems.MovementSystem;
 import com.pcg.roguelike.entity.systems.PhysicsSystem;
 import com.pcg.roguelike.entity.systems.PlayerAnimationSystem;
 import com.pcg.roguelike.entity.systems.RenderingSystem;
+import com.pcg.roguelike.entity.systems.ShootingSystem;
+import com.pcg.roguelike.item.weapon.EnergyStaff;
+import com.pcg.roguelike.item.weapon.Weapon;
 import com.pcg.roguelike.world.generator.BSPGenerator;
 import com.pcg.roguelike.world.generator.TextureGenerator;
 
@@ -52,6 +56,20 @@ public class GameWorld {
     public static final int TILE_SIZE = 32;
     public static final int TEXTURE_ANTIALIASING = 3;
     public static final int TEXTURE_VARIATIONS = 10;
+    public static final int PIXEL_TO_METERS = 2;
+    
+    public static final short CATEGORY_PLAYER = 1; 
+    public static final short CATEGORY_WALL = 1 << 1;
+    public static final short CATEGORY_PROJECTILE_PLAYER = 1 << 2;
+    public static final short CATEGORY_PROJECTILE_ENEMY = 1 << 3;
+    public static final short CATEGORY_ENEMY = 1 << 5; 
+    
+    public static final short MASK_PLAYER = CATEGORY_WALL | CATEGORY_PROJECTILE_ENEMY;
+    public static final short MASK_MONSTER = CATEGORY_WALL | CATEGORY_PLAYER | CATEGORY_PROJECTILE_PLAYER;
+    public static final short MASK_PROJECTILE = CATEGORY_WALL;
+    public static final short MASK_PROJECTILE_ENEMY = MASK_PROJECTILE | CATEGORY_PLAYER;
+    public static final short MASK_PROJECTILE_PLAYER = MASK_PROJECTILE | CATEGORY_ENEMY;
+    
     private BSPGenerator gen;
     private TextureGenerator texGen;
     private TiledMap map;
@@ -73,7 +91,7 @@ public class GameWorld {
     private Box2DDebugRenderer debugRenderer;
 
     private int playerClass = 0;
-
+    
     public TiledMap getMap() {
         return map;
     }
@@ -102,6 +120,7 @@ public class GameWorld {
         this.engine.addSystem(new RenderingSystem(this.batch, this.camera));
         this.engine.addSystem(new DirectionSystem());
         this.engine.addSystem(new PlayerAnimationSystem());
+        this.engine.addSystem(new ShootingSystem(this));
     }
 
     public void create() {
@@ -162,7 +181,7 @@ public class GameWorld {
         //variables for reusing
         bodyDef = new BodyDef();
         rectShape = new PolygonShape();
-        rectShape.setAsBox(TILE_SIZE / 2, TILE_SIZE / 2);
+        rectShape.setAsBox(TILE_SIZE / PIXEL_TO_METERS, TILE_SIZE / PIXEL_TO_METERS);
         fixtureDef = new FixtureDef();
 
         // wall body definition
@@ -173,6 +192,8 @@ public class GameWorld {
         fixtureDef.friction = .2f;
         fixtureDef.restitution = 0;
 
+        fixtureDef.filter.categoryBits = CATEGORY_WALL;
+        
         bodyDef.position.set((x + 0.5f) * TILE_SIZE, (y + 0.5f) * TILE_SIZE);
 
         Entity wall = new Entity();
@@ -193,13 +214,15 @@ public class GameWorld {
         
         //polygon
         PolygonShape rectShape = new PolygonShape();
-        rectShape.setAsBox(8, 8);
+        rectShape.setAsBox(24 / PIXEL_TO_METERS, 24 / PIXEL_TO_METERS);
 
         //fixture
         fixtureDef.shape = rectShape;
         fixtureDef.density = 0.01f;
         fixtureDef.friction = 0.25f;
-
+        fixtureDef.filter.categoryBits = CATEGORY_PLAYER;
+        fixtureDef.filter.maskBits = MASK_PLAYER;
+        
         //initialization
         this.player = new Entity();
         player.add(new PlayerComponent());
@@ -208,41 +231,29 @@ public class GameWorld {
         player.add(new SpriteComponent(null, 0));
         player.add(new MovementComponent(new Vector2(0, 0)));
         player.add(new SpeedComponent(500f));
-        player.add(new ShootingComponent(null));
+        player.add(new ShootingComponent(null, 15));
         player.add(new DirectionComponent(Direction.DOWN));
+        player.add(new WeaponComponent(new EnergyStaff()));
         
         engine.addEntity(player);
     }
 
     public void render(float delta) {
-        this.engine.update(delta);
-
         Body b = bm.get(player).body;
         if (b != null) {
             Vector2 playerPos = b.getPosition();
             camera.position.set(playerPos.x, playerPos.y, 0);
-            camera.update();
         }
-
+        
+        camera.update();
+        
         if (mapRenderer != null) {
             mapRenderer.setView(camera);
             mapRenderer.render();
         }
-
-        if (b != null) {
-            Sprite sprite = sc.get(player).s;
-            
-            if (sprite != null) {
-                sprite.setPosition(b.getPosition().x - sprite.getWidth() / 2, b.getPosition().y - sprite.getHeight() / 2);
-                sprite.setRotation(b.getAngle() * MathUtils.radiansToDegrees);
-                batch.begin();
-                batch.setProjectionMatrix(camera.combined);
-                sprite.draw(batch);
-                batch.end();
-            }
-        }
-
-        //debugRenderer.render(this.world, camera.combined);
+        
+        this.engine.update(delta);
+        debugRenderer.render(this.world, camera.combined);
     }
 
     public void addEntity(Entity e) {

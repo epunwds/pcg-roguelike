@@ -26,7 +26,7 @@ public class DirectionSystem extends IteratingSystem {
     private ComponentMapper<DirectionComponent> dirMapper = ComponentMapper.getFor(DirectionComponent.class);
 
     public DirectionSystem() {
-        super(Family.all(MovementComponent.class).get());
+        super(Family.all(DirectionComponent.class, MovementComponent.class).get());
     }
 
     @Override
@@ -52,6 +52,8 @@ public class DirectionSystem extends IteratingSystem {
             angle = (int) movement.angle();
         }
 
+        angle = (angle + 45) % 360;
+        
         if (angle >= 0 && angle < 90) {
             return Direction.RIGHT;
         } else if (angle >= 90 && angle < 180) {
@@ -61,7 +63,7 @@ public class DirectionSystem extends IteratingSystem {
         } else if (angle >= 270) {
             return Direction.DOWN;
         }
-
-        return Direction.values()[(270 - angle) / 90];
+        
+        return Direction.DOWN;
     }
 }

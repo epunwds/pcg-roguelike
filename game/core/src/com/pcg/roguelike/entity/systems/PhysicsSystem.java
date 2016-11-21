@@ -40,6 +40,8 @@ public class PhysicsSystem extends EntitySystem implements EntityListener {
         Body body = world.getBox2dWorld().createBody(bc.bodyDef);
         body.createFixture(bc.fixture);
 
+        body.setUserData(entity);
+        
         bc.body = body;
         bc.fixture.shape.dispose();
         

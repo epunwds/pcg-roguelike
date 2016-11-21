@@ -10,10 +10,14 @@ import com.badlogic.gdx.math.Vector3;
  */
 public class ShootingComponent implements Component {
     public Vector3 target;
-    public long lastShotTime;
+    public boolean isShooting;
+
+    public int shotTicks;
+    public int shootDelayTicks;
     
-    public ShootingComponent(Vector3 target) {
+    public ShootingComponent(Vector3 target, int shootDelayTicks) {
         this.target = target;
+        this.shootDelayTicks = shootDelayTicks;
     }
 
     public Vector2 getTarget2() {

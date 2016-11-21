@@ -11,8 +11,20 @@ public class MovementComponent implements Component {
 
     public Vector2 movement;
     public boolean isMoving;
+    public boolean canRotate;
     
     public MovementComponent(Vector2 movement) {
         this.movement = movement;
     }   
+
+    public MovementComponent(Vector2 movement, boolean isMoving) {
+        this.movement = movement;
+        this.isMoving = isMoving;
+    }
+
+    public MovementComponent(Vector2 movement, boolean isMoving, boolean canRotate) {
+        this.movement = movement;
+        this.isMoving = isMoving;
+        this.canRotate = canRotate;
+    }
 }

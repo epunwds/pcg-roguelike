@@ -16,7 +16,6 @@ import com.pcg.roguelike.entity.components.MovementComponent;
 import com.pcg.roguelike.entity.components.SpeedComponent;
 
 public class MovementSystem extends IteratingSystem {
-
     private final ComponentMapper<MovementComponent> mm = ComponentMapper.getFor(MovementComponent.class);
     private final ComponentMapper<SpeedComponent> sm = ComponentMapper.getFor(SpeedComponent.class);
     private final ComponentMapper<BodyComponent> bm = ComponentMapper.getFor(BodyComponent.class);
@@ -46,5 +45,9 @@ public class MovementSystem extends IteratingSystem {
             body.setLinearVelocity(movement);
         else
             body.setLinearVelocity(Vector2.Zero);
+        
+        if (mm.get(entity).canRotate) {
+            body.setTransform(body.getPosition(), movement.angleRad());
+        }
     }
 }

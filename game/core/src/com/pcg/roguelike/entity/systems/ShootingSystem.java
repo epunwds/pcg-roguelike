@@ -4,27 +4,32 @@ package com.pcg.roguelike.entity.systems;
  *
  * @author cr0s
  */
-import java.util.Comparator;
 
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.pcg.roguelike.entity.components.BodyComponent;
 import com.pcg.roguelike.entity.components.ShootingComponent;
-import com.pcg.roguelike.entity.components.SpriteComponent;
+import com.pcg.roguelike.entity.components.WeaponComponent;
+import com.pcg.roguelike.item.weapon.Weapon;
+import com.pcg.roguelike.world.GameWorld;
+import static com.pcg.roguelike.world.GameWorld.PIXEL_TO_METERS;
 
 public class ShootingSystem extends IteratingSystem {
     
-    private ComponentMapper<ShootingComponent> sm;
-
-    public ShootingSystem(SpriteBatch batch, OrthographicCamera cam) {
+    private ComponentMapper<ShootingComponent> sm = ComponentMapper.getFor(ShootingComponent.class);
+    private ComponentMapper<WeaponComponent> wm = ComponentMapper.getFor(WeaponComponent.class);
+    private final ComponentMapper<BodyComponent> bm = ComponentMapper.getFor(BodyComponent.class);
+    
+     public GameWorld world;
+     
+    public ShootingSystem(GameWorld world) {
         super(Family.all(ShootingComponent.class).get());
-
-        sm = ComponentMapper.getFor(ShootingComponent.class);
+        
+        this.world = world;
     }
 
     @Override
@@ -39,9 +44,30 @@ public class ShootingSystem extends IteratingSystem {
         if (sc == null)
             return;
         
-        if (sc.target == null)
+        sc.isShooting = (sc.target != null);
+        
+        if (!sc.isShooting) {
+            sc.shotTicks = 0;
             return;
+        }
         
+        /* First shot without a delay */
+        if (sc.shotTicks++ == 0) {
+            doShot(entity, new Vector2(sc.target.x, sc.target.y));
+        } else if (sc.shotTicks++ >= sc.shootDelayTicks) { /* Next shots are with delay between */
+            sc.shotTicks = 0;
+        }
+    }
+
+    private void doShot(Entity entity, Vector2 target) {
+        Weapon weapon = wm.get(entity).weapon;
+        Body body = bm.get(entity).body;
         
+        if (body != null) {
+            Vector2 pos = body.getPosition();
+            Entity e = weapon.getProjectile().createEntity(entity, pos, target);
+            
+            world.addEntity(e);
+        }
     }
 }

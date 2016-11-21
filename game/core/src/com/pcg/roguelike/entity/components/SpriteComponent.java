@@ -16,5 +16,5 @@ public class SpriteComponent implements Component {
         this.s = s;
         this.zOrder = zOrder;
     }
-
+    
 }

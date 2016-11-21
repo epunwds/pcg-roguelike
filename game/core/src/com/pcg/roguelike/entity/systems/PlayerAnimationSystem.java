@@ -78,23 +78,21 @@ public class PlayerAnimationSystem extends IteratingSystem {
             }
         }
         
-        System.out.println("moving: " + isMoving + " | ticks: " + ticks + " | idx: " + walkingIndex);
+        //System.out.println("moving: " + isMoving + " | ticks: " + ticks + " | idx: " + walkingIndex);
         
-        if (isPlayerShooting(entity)) {
-            // TODO: shooting animation
-            sc.s = playerSprites[dir][walkingIndex];
-            return;
+        ShootingComponent shootingc = shootingMapper.get(entity);        
+        if (shootingc != null && shootingc.isShooting) {
+            /* Shooting animation frame lasts half of a delay between shots */
+            if (shootingc.shotTicks <= shootingc.shootDelayTicks / 2) {
+                sc.s = playerShooting[dir];
+                return;
+            } else {
+                walkingIndex = 0;
+            }
         }
         
         /* Walking animation */
         sc.s = playerSprites[dir][walkingIndex];
-        
-        
-    }
-    
-    private boolean isPlayerShooting(Entity entity) {
-        ShootingComponent sc = shootingMapper.get(entity);
-        return sc != null && sc.target != null;
     }
     
     private void loadPlayerSprites() {
@@ -125,10 +123,9 @@ public class PlayerAnimationSystem extends IteratingSystem {
 
         for (int i = 0; i < this.playerSprites.length; i++) {
             Sprite s = new Sprite(splitPlayerShooting[i][0]);
-            s.setSize(24, 24);
+            s.setSize(48, 24);
             s.setOrigin(s.getWidth() / 2, s.getHeight() / 2);
 
-            s.setScale(1.5f, 3f);
 
             this.playerShooting[i] = s;
         }
