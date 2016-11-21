@@ -53,7 +53,7 @@ public class MainMenu implements Screen {
         buttonPlay.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                ((Game) Gdx.app.getApplicationListener()).setScreen(new Play(1));
+                ((Game) Gdx.app.getApplicationListener()).setScreen(new MenuSelectClass());
             }
         });
 
@@ -88,9 +88,9 @@ public class MainMenu implements Screen {
         table.add(buttonPlay);
         table.getCell(buttonPlay).spaceBottom(75);
         table.row();
-        table.add(buttonSettings);
-        table.getCell(buttonSettings).spaceBottom(65);
-        table.row();
+        //table.add(buttonSettings);
+        //table.getCell(buttonSettings).spaceBottom(65);
+        //table.row();
         table.add(buttonExit);
         table.getCell(buttonExit).spaceBottom(60);
         stage.addActor(table);
