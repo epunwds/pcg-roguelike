@@ -37,6 +37,7 @@ import com.pcg.roguelike.entity.components.visual.SpriteComponent;
 import com.pcg.roguelike.entity.components.data.WeaponComponent;
 import com.pcg.roguelike.entity.systems.CleanupSystem;
 import com.pcg.roguelike.entity.systems.DirectionSystem;
+import com.pcg.roguelike.entity.systems.LifetimeSystem;
 import com.pcg.roguelike.entity.systems.MovementSystem;
 import com.pcg.roguelike.entity.systems.PhysicsSystem;
 import com.pcg.roguelike.entity.systems.PlayerAnimationSystem;
@@ -129,6 +130,7 @@ public class GameWorld {
         this.engine.addSystem(new PlayerAnimationSystem());
         this.engine.addSystem(new ShootingSystem(this));
         this.engine.addSystem(new CleanupSystem(this));
+        this.engine.addSystem(new LifetimeSystem());
         
         this.world.setContactListener(new CollisionSystem(this));
     }
@@ -216,8 +218,6 @@ public class GameWorld {
     }
 
     private void createPlayer() {
-        //HERO
-        //body
         BodyDef bodyDef = new BodyDef();
         FixtureDef fixtureDef = new FixtureDef();
 
@@ -225,18 +225,15 @@ public class GameWorld {
         bodyDef.position.set(5 * GameWorld.TILE_SIZE, 5 * GameWorld.TILE_SIZE);
         bodyDef.fixedRotation = true;
         
-        //polygon
         PolygonShape rectShape = new PolygonShape();
-        rectShape.setAsBox(24 / PIXELS_TO_METERS, 24 / PIXELS_TO_METERS);
+        rectShape.setAsBox(16 / PIXELS_TO_METERS, 16 / PIXELS_TO_METERS);
 
-        //fixture
         fixtureDef.shape = rectShape;
         fixtureDef.density = 0.01f;
         fixtureDef.friction = 0.25f;
         fixtureDef.filter.categoryBits = CATEGORY_PLAYER;
         fixtureDef.filter.maskBits = MASK_PLAYER;
         
-        //initialization
         this.player = new Entity();
         player.add(new PlayerComponent());
         player.add(new BodyComponent(null, bodyDef, fixtureDef));
@@ -268,7 +265,7 @@ public class GameWorld {
         this.engine.update(delta);
         cleanupEntities();
         
-        debugRenderer.render(this.world, camera.combined);
+        //debugRenderer.render(this.world, camera.combined);
     }
 
     public void addEntity(Entity e) {

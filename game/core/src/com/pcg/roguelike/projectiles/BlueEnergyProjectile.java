@@ -10,6 +10,7 @@ public class BlueEnergyProjectile extends Projectile {
 
     private static final float SPEED = 1000.0f;
     private static final int DAMAGE = 35;
+    private static final int LIFETIME = 50;
     
     public BlueEnergyProjectile() {
     }
@@ -28,6 +29,9 @@ public class BlueEnergyProjectile extends Projectile {
     public int getDamage() {
         return DAMAGE;
     }
-    
-    
+
+    @Override
+    public int getLifetimeTicks() {
+        return LIFETIME;
+    }
 }
