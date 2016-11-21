@@ -10,6 +10,7 @@ import com.badlogic.gdx.math.Vector2;
 public class MovementComponent implements Component {
 
     public Vector2 movement;
+    public boolean isMoving;
     
     public MovementComponent(Vector2 movement) {
         this.movement = movement;

@@ -18,6 +18,7 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
@@ -25,11 +26,17 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.pcg.roguelike.entity.components.BodyComponent;
+import com.pcg.roguelike.entity.components.DirectionComponent;
+import com.pcg.roguelike.entity.components.DirectionComponent.Direction;
 import com.pcg.roguelike.entity.components.MovementComponent;
+import com.pcg.roguelike.entity.components.PlayerComponent;
+import com.pcg.roguelike.entity.components.ShootingComponent;
 import com.pcg.roguelike.entity.components.SpeedComponent;
 import com.pcg.roguelike.entity.components.SpriteComponent;
+import com.pcg.roguelike.entity.systems.DirectionSystem;
 import com.pcg.roguelike.entity.systems.MovementSystem;
 import com.pcg.roguelike.entity.systems.PhysicsSystem;
+import com.pcg.roguelike.entity.systems.PlayerAnimationSystem;
 import com.pcg.roguelike.entity.systems.RenderingSystem;
 import com.pcg.roguelike.world.generator.BSPGenerator;
 
@@ -55,10 +62,13 @@ public class GameWorld {
     private ComponentMapper<BodyComponent> bm = ComponentMapper.getFor(BodyComponent.class);
     private ComponentMapper<MovementComponent> mm = ComponentMapper.getFor(MovementComponent.class);
     private ComponentMapper<SpriteComponent> sc = ComponentMapper.getFor(SpriteComponent.class);
+    private ComponentMapper<ShootingComponent> sm = ComponentMapper.getFor(ShootingComponent.class);
 
     private SpriteBatch batch;
     private OrthographicCamera camera;
     private Box2DDebugRenderer debugRenderer;
+
+    private int playerClass = 0;
 
     public TiledMap getMap() {
         return map;
@@ -85,6 +95,8 @@ public class GameWorld {
         this.camera.update();
 
         this.engine.addSystem(new RenderingSystem(this.batch, this.camera));
+        this.engine.addSystem(new DirectionSystem());
+        this.engine.addSystem(new PlayerAnimationSystem());
     }
 
     public void create() {
@@ -167,7 +179,8 @@ public class GameWorld {
 
         bodyDef.type = BodyDef.BodyType.DynamicBody;
         bodyDef.position.set(5 * GameWorld.TILE_SIZE, 5 * GameWorld.TILE_SIZE);
-
+        bodyDef.fixedRotation = true;
+        
         //polygon
         PolygonShape rectShape = new PolygonShape();
         rectShape.setAsBox(8, 8);
@@ -179,20 +192,15 @@ public class GameWorld {
 
         //initialization
         this.player = new Entity();
+        player.add(new PlayerComponent());
         player.add(new BodyComponent(null, bodyDef, fixtureDef));
 
-        //sprites assigning
-        Texture tiles = new Texture(Gdx.files.internal("tiles.png"));
-        TextureRegion[][] splitTiles = TextureRegion.split(tiles, GameWorld.TILE_SIZE, GameWorld.TILE_SIZE);
-
-        Sprite heroSprite = new Sprite(splitTiles[1][0]);
-        heroSprite.setSize(8 * 2, 8 * 2);
-        heroSprite.setOrigin(heroSprite.getWidth() / 2, heroSprite.getHeight() / 2);
-
-        player.add(new SpriteComponent(heroSprite, 0));
+        player.add(new SpriteComponent(null, 0));
         player.add(new MovementComponent(new Vector2(0, 0)));
         player.add(new SpeedComponent(500f));
-
+        player.add(new ShootingComponent(null));
+        player.add(new DirectionComponent(Direction.DOWN));
+        
         engine.addEntity(player);
     }
 
@@ -212,20 +220,19 @@ public class GameWorld {
         }
 
         if (b != null) {
-            batch.begin();
             Sprite sprite = sc.get(player).s;
-            if (b.getPosition() == null) {
-                System.out.println("POS IS NULL");
+            
+            if (sprite != null) {
+                sprite.setPosition(b.getPosition().x - sprite.getWidth() / 2, b.getPosition().y - sprite.getHeight() / 2);
+                sprite.setRotation(b.getAngle() * MathUtils.radiansToDegrees);
+                batch.begin();
+                batch.setProjectionMatrix(camera.combined);
+                sprite.draw(batch);
+                batch.end();
             }
-            sprite.setPosition(b.getPosition().x - sprite.getWidth() / 2, b.getPosition().y - sprite.getHeight() / 2);
-            sprite.setRotation(b.getAngle() * MathUtils.radiansToDegrees);
-
-            batch.setProjectionMatrix(camera.combined);
-            sprite.draw(batch);
-            batch.end();
         }
 
-        debugRenderer.render(this.world, camera.combined);
+        //debugRenderer.render(this.world, camera.combined);
     }
 
     public void addEntity(Entity e) {
@@ -233,8 +240,34 @@ public class GameWorld {
     }
 
     public void movePlayer(Vector2 movement) {
+        if (movement.isZero(1f)) {
+            mm.get(player).isMoving = false;
+            return;
+        }
+        
+        mm.get(player).isMoving = true;
+        
         Vector2 m = mm.get(player).movement;
         m.x = movement.x;
         m.y = movement.y;
+    }
+
+    public OrthographicCamera getCamera() {
+        return camera;
+    }
+
+    public Vector2 getPlayerPos() {
+        BodyComponent bc = bm.get(player);
+        return bc.body.getPosition().cpy();
+    }
+
+    public void shoot(Vector3 target) {
+        ShootingComponent s = sm.get(player);
+        s.target = target;
+    }
+
+    public void stopShooting() {
+        ShootingComponent s = sm.get(player);
+        s.target = null;
     }
 }

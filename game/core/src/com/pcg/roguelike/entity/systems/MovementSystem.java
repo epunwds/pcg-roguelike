@@ -42,9 +42,9 @@ public class MovementSystem extends IteratingSystem {
             movement.scl(speed);
         }
         
-        System.out.println("Movement: " + movement);
-        
-        body.setLinearVelocity(movement);
-        //body.applyLinearImpulse(movement, body.getPosition(), true);
+        if (mm.get(entity).isMoving)
+            body.setLinearVelocity(movement);
+        else
+            body.setLinearVelocity(Vector2.Zero);
     }
 }

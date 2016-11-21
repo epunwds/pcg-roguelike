@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -15,6 +16,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.*;
 import com.pcg.roguelike.entity.components.BodyComponent;
 import com.pcg.roguelike.entity.components.MovementComponent;
@@ -25,12 +27,11 @@ import com.pcg.roguelike.world.GameWorld;
  * Created by BugDeveloper on 17.11.2016.
  */
 public class Play implements Screen {
-    
 
     private BitmapFont font;
     private SpriteBatch batch2;
     private GameWorld gameWorld;
-    
+
     @Override
     public void show() {
         Gdx.input.setInputProcessor(new Input());
@@ -52,9 +53,8 @@ public class Play implements Screen {
         batch2.begin();
         font.setColor(Color.WHITE);
         font.draw(batch2, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 20);
-        batch2.end();  
+        batch2.end();
     }
-
 
     @Override
     public void resize(int width, int height) {
@@ -84,10 +84,9 @@ public class Play implements Screen {
     public class Input extends InputAdapter {
 
         private final Vector2 movement = new Vector2(0, 0);
-        
+
         @Override
         public boolean keyDown(int keycode) {
-
 
             switch (keycode) {
                 case Keys.W:
@@ -106,10 +105,10 @@ public class Play implements Screen {
                     movement.x = 1;
                     break;
             }
-            
+
             /* Movement has occurred */
             gameWorld.movePlayer(movement);
-            
+
             return true;
         }
 
@@ -126,10 +125,44 @@ public class Play implements Screen {
                     movement.x = 0;
                     break;
             }
-            
+
             gameWorld.movePlayer(movement);
-            
+
             return true;
         }
+
+        @Override
+        public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+            gameWorld.stopShooting();
+
+            return false;
+        }
+
+        @Override
+        public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+            shoot(screenX, screenY, button);
+
+            return false;
+        }
+
+        @Override
+        public boolean touchDragged(int screenX, int screenY, int pointer) {
+            shoot(screenX, screenY, 0);
+
+            return false;
+        }
+
+        private void shoot(int screenX, int screenY, int btn) {
+            Vector3 click = new Vector3(screenX, screenY, 0);
+
+            Camera camera = gameWorld.getCamera();
+            click = camera.unproject(click);
+
+            Vector2 playerPos = gameWorld.getPlayerPos();
+            Vector3 target = click.sub(new Vector3(playerPos.x, playerPos.y, 0));
+
+            gameWorld.shoot(target);
+        }
+
     }
 }
