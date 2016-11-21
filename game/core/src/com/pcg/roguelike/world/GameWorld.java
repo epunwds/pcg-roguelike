@@ -4,8 +4,8 @@ import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
-import com.badlogic.ashley.core.PooledEngine;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -39,6 +39,7 @@ import com.pcg.roguelike.entity.systems.PhysicsSystem;
 import com.pcg.roguelike.entity.systems.PlayerAnimationSystem;
 import com.pcg.roguelike.entity.systems.RenderingSystem;
 import com.pcg.roguelike.world.generator.BSPGenerator;
+import com.pcg.roguelike.world.generator.TextureGenerator;
 
 import java.util.Random;
 
@@ -46,12 +47,15 @@ import java.util.Random;
  * Created by BugDeveloper on 16.11.2016.
  */
 public class GameWorld {
-
     public static final int WIDTH = 60;
     public static final int HEIGHT = 30;
     public static final int TILE_SIZE = 32;
+    public static final int TEXTURE_ANTIALIASING = 3;
+    public static final int TEXTURE_VARIATIONS = 10;
     private BSPGenerator gen;
+    private TextureGenerator texGen;
     private TiledMap map;
+    private Random rand;
 
     private World world;
     private Engine engine;
@@ -79,10 +83,11 @@ public class GameWorld {
     }
 
     public GameWorld() {
+        rand = new Random(System.currentTimeMillis());
         this.debugRenderer = new Box2DDebugRenderer();
         this.world = new World(new Vector2(0, 0), true);
-
-        gen = new BSPGenerator(WIDTH, HEIGHT, 5, 3, new Random());
+        texGen = new TextureGenerator(TILE_SIZE, TILE_SIZE, rand);
+        gen = new BSPGenerator(WIDTH, HEIGHT, 5, 3, rand);
 
         this.engine = new Engine();
         PhysicsSystem physicsSystem = new PhysicsSystem(this);
@@ -103,8 +108,14 @@ public class GameWorld {
         int[][] mapBlueprint = gen.generateMap();
 
         /* Tiles textures */
-        Texture tiles = new Texture(Gdx.files.internal("tiles.png"));
-        TextureRegion[][] splitTiles = TextureRegion.split(tiles, TILE_SIZE, TILE_SIZE);
+        TextureRegion[] groundTiles = new TextureRegion[TEXTURE_VARIATIONS];
+        TextureRegion[] wallTiles = new TextureRegion[TEXTURE_VARIATIONS];
+
+        /* Texture generation */
+        for (int i = 0; i < TEXTURE_VARIATIONS; i++) {
+            groundTiles[i] = new TextureRegion(texGen.generateTexture(Color.LIGHT_GRAY, Color.DARK_GRAY, TEXTURE_ANTIALIASING));
+            wallTiles[i] = new TextureRegion(texGen.generateTexture(Color.GRAY, Color.BLACK, TEXTURE_ANTIALIASING));
+        }
 
         /* Creating TiledMap and filling it with tiles corresponding to the blueprint */
         TiledMap tiledMap = new TiledMap();
@@ -117,17 +128,16 @@ public class GameWorld {
                 switch (mapBlueprint[x][y]) {
                     //wall
                     case 0: {
-                        StaticTiledMapTile tile = new StaticTiledMapTile(splitTiles[0][2]);
+                        StaticTiledMapTile tile = new StaticTiledMapTile(wallTiles[rand.nextInt(TEXTURE_VARIATIONS)]);
                         tile.setId(0);
                         cell.setTile(tile);
-
                         createWall(x, y);
                     }
                     break;
 
                     //ground
                     case 1: {
-                        StaticTiledMapTile tile = new StaticTiledMapTile(splitTiles[0][0]);
+                        StaticTiledMapTile tile = new StaticTiledMapTile(groundTiles[rand.nextInt(TEXTURE_VARIATIONS)]);
                         tile.setId(1);
                         cell.setTile(tile);
                     }
