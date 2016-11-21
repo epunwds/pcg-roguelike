@@ -1,7 +1,8 @@
 package com.pcg.roguelike;
 
 import com.badlogic.gdx.Game;
-import com.pcg.roguelike.screens.Play;
+import com.pcg.roguelike.screens.MainMenu;
+
 /**
  * Created by BugDeveloper on 17.11.2016.
  */
@@ -9,7 +10,7 @@ public class Roguelike extends Game {
 
     @Override
     public void create() {
-        setScreen(new Play());
+        setScreen(new MainMenu());
     }
 
     @Override
