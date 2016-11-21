@@ -2,10 +2,6 @@ package com.pcg.roguelike.world.generator;
 
 import com.badlogic.gdx.graphics.*;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.Random;
 
 /**
@@ -14,107 +10,159 @@ import java.util.Random;
 
 public class TextureGenerator {
 
+    private Random random;
+    private int width, height;
+    private float baseNoise[][];
+
     public TextureGenerator(int width, int height, Random random) {
         this.random = random;
         this.width = width;
         this.height = height;
     }
 
-    private Random random;
-    private int width, height;
-
-    private float[][] generateWhiteNoise(int width, int height)
-    {
+    private void generateWhiteNoise() {
         float[][] noise = new float[width][height];
 
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
-                noise[i][j] = (float)random.nextDouble() % 1;
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                noise[i][j] = (float) random.nextDouble() % 1;
             }
         }
-        return noise;
+        baseNoise = noise;
     }
 
-    private float interpolate(float x0, float x1, float alpha)
-    {
-        return x0 * (1 - alpha) + alpha * x1;
-    }
+    public Texture generateTurbulenceTexture(Color gradientStart, Color gradientEnd, int turbSize) {
+        generateWhiteNoise();
 
-    private float[][] generateSmoothNoise(float[][] baseNoise, int octave)
-    {
+        float[][] blueprint = new float[width][height];
 
-        float[][] smoothNoise = new float[width][height];
-
-        int samplePeriod = 1 << octave;
-        float sampleFrequency = 1.0f / samplePeriod;
-
-        for (int i = 0; i < width; i++)
-        {
-            //calculate the horizontal sampling indices
-            int sample_i0 = (i / samplePeriod) * samplePeriod;
-            int sample_i1 = (sample_i0 + samplePeriod) % width; //wrap around
-            float horizontal_blend = (i - sample_i0) * sampleFrequency;
-
-            for (int j = 0; j < height; j++)
-            {
-                //calculate the vertical sampling indices
-                int sample_j0 = (j / samplePeriod) * samplePeriod;
-                int sample_j1 = (sample_j0 + samplePeriod) % height; //wrap around
-                float vertical_blend = (j - sample_j0) * sampleFrequency;
-
-                //blend the top two corners
-                float top = interpolate(baseNoise[sample_i0][sample_j0],
-                        baseNoise[sample_i1][sample_j0], horizontal_blend);
-
-                //blend the bottom two corners
-                float bottom = interpolate(baseNoise[sample_i0][sample_j1],
-                        baseNoise[sample_i1][sample_j1], horizontal_blend);
-
-                //final blend
-                smoothNoise[i][j] = interpolate(top, bottom, vertical_blend);
-
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                float value = turbulence(i, j, turbSize);
+                blueprint[i][j] = value;
             }
         }
-
-        return smoothNoise;
+        return getTexture(gradientStart, gradientEnd, blueprint);
     }
 
-    public Texture generateTexture(Color gradientStart, Color gradientEnd, int octaveCount) {
+    private float turbulence(double x, double y, float size) {
+        float value = 0.0f, initialSize = size;
 
+        while (size >= 1) {
+            value += smoothNoise(x / size, y / size) * size;
+            size /= 2.0;
+        }
 
-        float[][] perlinNoise = generatePerlinNoise(octaveCount);
+        return (value / initialSize);
+    }
 
-        Color[][] perlinImage = mapGradient(gradientStart, gradientEnd, perlinNoise);
+    public Texture generateWoodTexture(Color gradientStart, Color gradientEnd, float xyPeriod, float turbPower, float turbSize) {
+        //number of rings float xyPeriod;
+        //makes twists float turbPower;
+        //initial size of the turbulence float turbSize;
+
+        float[][] blueprint = new float[width][height];
+
+        for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++) {
+                float xValue = (x - width / 2) / (float) width;
+                float yValue = (y - height / 2) / (float) height;
+                float distValue = (float) Math.sqrt(xValue * xValue + yValue * yValue) + turbPower * turbulence(x, y, turbSize);
+                float sineValue = (float) Math.abs(Math.sin(2 * xyPeriod * distValue * Math.PI));
+                blueprint[x][y] = sineValue;
+            }
+
+        return getTexture(gradientStart, gradientEnd, blueprint);
+    }
+
+    public Texture generateMetalTexture(Color gradientStart, Color gradientEnd, float xyPeriod, float turbPower, float turbSize) {
+        float[][] blueprint = new float[width][height];
+
+        for (int i = 0; i < height; i++)
+            for (int j = 0; j < width; j++) {
+                double xValue = (i - width / 2) / (float) width + turbPower * turbulence(i, j, turbSize);
+                double yValue = (j - height / 2) / (float) height + turbPower * turbulence(height - j, width - i, turbSize);
+                float sineValue = 22.0f * (float) Math.abs(Math.sin(xyPeriod * xValue * Math.PI) + Math.sin(xyPeriod * yValue * Math.PI));
+                blueprint[i][j] = sineValue;
+            }
+
+        return getTexture(gradientStart, gradientEnd, blueprint);
+    }
+
+    private Float smoothNoise(Double x, Double y) {
+        //get fractional part of x and y
+        double fractX = x - x.intValue();
+        double fractY = y - y.intValue();
+
+        //wrap around
+        int x1 = (x.intValue() + width) % width;
+        int y1 = (y.intValue() + height) % height;
+
+        //neighbor values
+        int x2 = (x1 + width - 1) % width;
+        int y2 = (y1 + height - 1) % height;
+
+        //smooth the noise with bilinear interpolation
+        float value = 0.0f;
+        value += fractX * fractY * baseNoise[y1][x1];
+        value += (1 - fractX) * fractY * baseNoise[y1][x2];
+        value += fractX * (1 - fractY) * baseNoise[y2][x1];
+        value += (1 - fractX) * (1 - fractY) * baseNoise[y2][x2];
+        return value;
+    }
+
+    private Texture getTexture(Color gradientStart, Color gradientEnd, float[][] blueprint) {
 
         Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGB888);
 
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
-                pixmap.setColor(GetColor(gradientStart, gradientEnd, perlinNoise[i][j]));
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                Color color = getColor(gradientStart, gradientEnd, blueprint[i][j]);
+                pixmap.setColor(color);
                 pixmap.drawPixel(i, j);
             }
         }
-        pixmap.setColor(Color.CYAN);
-
         return new Texture(pixmap);
     }
 
-    private float[][] generatePerlinNoise(int octaveCount)
-    {
-        float[][] baseNoise = generateWhiteNoise(width, height);
+    public Texture generatePerlinTexture(Color gradientStart, Color gradientEnd, int octaveCount, double diviser) {
 
-        float[][][] smoothNoise = new float[octaveCount][][]; //an array of 2D arrays containing
+        generateWhiteNoise();
+
+        float[][] perlinNoise = generatePerlinNoise(octaveCount, diviser);
+
+        return getTexture(gradientStart, gradientEnd, perlinNoise);
+    }
+
+    public Texture generateMarbgeTexture(Color gradientStart, Color gradientEnd, float turbPower, float turbSize, float xPeriod, float yPeriod) {
+
+        generateWhiteNoise();
+
+        float[][] blueprint = new float[width][height];
+
+        for (int i = 0; i < height; i++)
+            for (int j = 0; j < width; j++) {
+                double xyValue = i * xPeriod / width + j * yPeriod / height + turbPower * turbulence(i, j, turbSize);
+                float sineValue = (float) Math.abs(Math.sin(xyValue * Math.PI));
+                blueprint[i][j] = sineValue;
+            }
+
+        return getTexture(gradientStart, gradientEnd, blueprint);
+    }
+
+    private float[][] generatePerlinNoise(int octaveCount, double diviser) {
+        float[][][] smoothNoise = new float[octaveCount][width][height]; //an array of 2D arrays containing
 
         float persistance = 0.5f;
 
         //generate smooth noise
-        for (int i = 0; i < octaveCount; i++)
-        {
-            smoothNoise[i] = generateSmoothNoise(baseNoise, i);
+        for (int i = 0; i < octaveCount; i++) {
+            for (int j = 0; j < width; j++) {
+                for (int k = 0; k < height; k++) {
+                    smoothNoise[i][j][k] = smoothNoise(j / diviser, k / diviser);
+                }
+            }
+            diviser *= octaveCount;
         }
 
         float[][] perlinNoise = new float[width][height];
@@ -122,26 +170,20 @@ public class TextureGenerator {
         float totalAmplitude = 0.0f;
 
         //blend noise together
-        for (int octave = octaveCount - 1; octave >= 0; octave--)
-        {
-
+        for (int octave = octaveCount - 1; octave >= 0; octave--) {
             amplitude *= persistance;
             totalAmplitude += amplitude;
 
-            for (int i = 0; i < width; i++)
-            {
-                for (int j = 0; j < height; j++)
-                {
+            for (int i = 0; i < width; i++) {
+                for (int j = 0; j < height; j++) {
                     perlinNoise[i][j] += smoothNoise[octave][i][j] * amplitude;
                 }
             }
         }
 
         //normalisation
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
                 perlinNoise[i][j] /= totalAmplitude;
             }
         }
@@ -149,8 +191,7 @@ public class TextureGenerator {
         return perlinNoise;
     }
 
-    public Color GetColor(Color gradientStart, Color gradientEnd, float t)
-    {
+    public Color getColor(Color gradientStart, Color gradientEnd, float t) {
         float u = 1 - t;
 
         Color color = new Color(
@@ -161,29 +202,17 @@ public class TextureGenerator {
         return color;
     }
 
+    private Color[][] mapGradient(Color gradientStart, Color gradientEnd, float[][] perlinNoise) {
 
-    private Color[][] mapGradient(Color gradientStart, Color gradientEnd, float[][] perlinNoise)
-    {
+        Color[][] image = new Color[width][height]; //an array of colours
 
-
-        Color[][] image = getColorArray(width, height); //an array of colours
-
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
-                image[i][j] = GetColor(gradientStart, gradientEnd, perlinNoise[i][j]);
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                image[i][j] = getColor(gradientStart, gradientEnd, perlinNoise[i][j]);
             }
         }
 
         return image;
-    }
-
-    public Color[][] getColorArray(int width, int height) {
-
-        Color[][] arr = new Color[width][height];
-
-        return arr;
     }
 
 }
