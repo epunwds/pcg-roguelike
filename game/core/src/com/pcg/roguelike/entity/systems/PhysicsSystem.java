@@ -7,7 +7,7 @@ import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.pcg.roguelike.entity.components.BodyComponent;
+import com.pcg.roguelike.entity.components.physics.BodyComponent;
 import com.pcg.roguelike.world.GameWorld;
 
 /**
@@ -16,10 +16,10 @@ import com.pcg.roguelike.world.GameWorld;
  */
 public class PhysicsSystem extends EntitySystem implements EntityListener {
 
-    private static final float TIMESTEP = 1 / 60f;
+    private static final float TIMESTEP = 1f / 60f;
     private static final int VELOCITY_ITERATIONS = 8, POSITION_ITERATIONS = 3;
+    
     private GameWorld world;
-
     private ComponentMapper<BodyComponent> bm = ComponentMapper.getFor(BodyComponent.class);
 
     public PhysicsSystem(GameWorld world) {
@@ -50,7 +50,6 @@ public class PhysicsSystem extends EntitySystem implements EntityListener {
 
     @Override
     public void entityRemoved(Entity entity) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

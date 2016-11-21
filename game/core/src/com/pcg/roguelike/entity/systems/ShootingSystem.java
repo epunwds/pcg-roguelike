@@ -11,12 +11,12 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.pcg.roguelike.entity.components.BodyComponent;
-import com.pcg.roguelike.entity.components.ShootingComponent;
-import com.pcg.roguelike.entity.components.WeaponComponent;
+import com.pcg.roguelike.entity.components.physics.BodyComponent;
+import com.pcg.roguelike.entity.components.dynamic.ShootingComponent;
+import com.pcg.roguelike.entity.components.data.WeaponComponent;
 import com.pcg.roguelike.item.weapon.Weapon;
 import com.pcg.roguelike.world.GameWorld;
-import static com.pcg.roguelike.world.GameWorld.PIXEL_TO_METERS;
+import static com.pcg.roguelike.world.GameWorld.PIXELS_TO_METERS;
 
 public class ShootingSystem extends IteratingSystem {
     
@@ -53,7 +53,7 @@ public class ShootingSystem extends IteratingSystem {
         
         /* First shot without a delay */
         if (sc.shotTicks++ == 0) {
-            doShot(entity, new Vector2(sc.target.x, sc.target.y));
+            doShot(entity, new Vector2(sc.target.x * PIXELS_TO_METERS, sc.target.y * PIXELS_TO_METERS));
         } else if (sc.shotTicks++ >= sc.shootDelayTicks) { /* Next shots are with delay between */
             sc.shotTicks = 0;
         }

@@ -25,15 +25,17 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
-import com.pcg.roguelike.entity.components.BodyComponent;
-import com.pcg.roguelike.entity.components.DirectionComponent;
-import com.pcg.roguelike.entity.components.DirectionComponent.Direction;
-import com.pcg.roguelike.entity.components.MovementComponent;
-import com.pcg.roguelike.entity.components.PlayerComponent;
-import com.pcg.roguelike.entity.components.ShootingComponent;
-import com.pcg.roguelike.entity.components.SpeedComponent;
-import com.pcg.roguelike.entity.components.SpriteComponent;
-import com.pcg.roguelike.entity.components.WeaponComponent;
+import com.pcg.roguelike.collision.CollisionSystem;
+import com.pcg.roguelike.entity.components.physics.BodyComponent;
+import com.pcg.roguelike.entity.components.physics.DirectionComponent;
+import com.pcg.roguelike.entity.components.physics.DirectionComponent.Direction;
+import com.pcg.roguelike.entity.components.dynamic.MovementComponent;
+import com.pcg.roguelike.entity.components.player.PlayerComponent;
+import com.pcg.roguelike.entity.components.dynamic.ShootingComponent;
+import com.pcg.roguelike.entity.components.dynamic.SpeedComponent;
+import com.pcg.roguelike.entity.components.visual.SpriteComponent;
+import com.pcg.roguelike.entity.components.data.WeaponComponent;
+import com.pcg.roguelike.entity.systems.CleanupSystem;
 import com.pcg.roguelike.entity.systems.DirectionSystem;
 import com.pcg.roguelike.entity.systems.MovementSystem;
 import com.pcg.roguelike.entity.systems.PhysicsSystem;
@@ -44,6 +46,9 @@ import com.pcg.roguelike.item.weapon.EnergyStaff;
 import com.pcg.roguelike.item.weapon.Weapon;
 import com.pcg.roguelike.world.generator.BSPGenerator;
 import com.pcg.roguelike.world.generator.TextureGenerator;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import java.util.Random;
 
@@ -56,19 +61,19 @@ public class GameWorld {
     public static final int TILE_SIZE = 32;
     public static final int TEXTURE_ANTIALIASING = 3;
     public static final int TEXTURE_VARIATIONS = 10;
-    public static final int PIXEL_TO_METERS = 2;
+    
+    public static final float PIXELS_TO_METERS = 2;
     
     public static final short CATEGORY_PLAYER = 1; 
     public static final short CATEGORY_WALL = 1 << 1;
     public static final short CATEGORY_PROJECTILE_PLAYER = 1 << 2;
     public static final short CATEGORY_PROJECTILE_ENEMY = 1 << 3;
-    public static final short CATEGORY_ENEMY = 1 << 5; 
+    public static final short CATEGORY_ENEMY = 1 << 4; 
     
     public static final short MASK_PLAYER = CATEGORY_WALL | CATEGORY_PROJECTILE_ENEMY;
     public static final short MASK_MONSTER = CATEGORY_WALL | CATEGORY_PLAYER | CATEGORY_PROJECTILE_PLAYER;
-    public static final short MASK_PROJECTILE = CATEGORY_WALL;
-    public static final short MASK_PROJECTILE_ENEMY = MASK_PROJECTILE | CATEGORY_PLAYER;
-    public static final short MASK_PROJECTILE_PLAYER = MASK_PROJECTILE | CATEGORY_ENEMY;
+    public static final short MASK_PROJECTILE_ENEMY = CATEGORY_WALL | CATEGORY_PLAYER;
+    public static final short MASK_PROJECTILE_PLAYER = CATEGORY_WALL | CATEGORY_ENEMY;
     
     private BSPGenerator gen;
     private TextureGenerator texGen;
@@ -91,6 +96,8 @@ public class GameWorld {
     private Box2DDebugRenderer debugRenderer;
 
     private int playerClass = 0;
+        
+    private List<Entity> removedEntities = new LinkedList<>();
     
     public TiledMap getMap() {
         return map;
@@ -121,6 +128,9 @@ public class GameWorld {
         this.engine.addSystem(new DirectionSystem());
         this.engine.addSystem(new PlayerAnimationSystem());
         this.engine.addSystem(new ShootingSystem(this));
+        this.engine.addSystem(new CleanupSystem(this));
+        
+        this.world.setContactListener(new CollisionSystem(this));
     }
 
     public void create() {
@@ -132,8 +142,8 @@ public class GameWorld {
 
         /* Texture generation */
         for (int i = 0; i < TEXTURE_VARIATIONS; i++) {
-            groundTiles[i] = new TextureRegion(texGen.generatePerlinTexture(Color.LIGHT_GRAY, Color.DARK_GRAY, 1, 0.5));
-            wallTiles[i] = new TextureRegion(texGen.generatePerlinTexture(Color.LIGHT_GRAY, Color.DARK_GRAY, 1, 0.5));
+            groundTiles[i] = new TextureRegion(texGen.generatePerlinTexture(Color.LIGHT_GRAY, Color.DARK_GRAY, 2, 0.7));
+            wallTiles[i] = new TextureRegion(texGen.generatePerlinTexture(Color.BLACK, Color.BROWN, 2, 0.7));
         }
 
         /* Creating TiledMap and filling it with tiles corresponding to the blueprint */
@@ -181,7 +191,7 @@ public class GameWorld {
         //variables for reusing
         bodyDef = new BodyDef();
         rectShape = new PolygonShape();
-        rectShape.setAsBox(TILE_SIZE / PIXEL_TO_METERS, TILE_SIZE / PIXEL_TO_METERS);
+        rectShape.setAsBox(TILE_SIZE / PIXELS_TO_METERS, TILE_SIZE / PIXELS_TO_METERS);
         fixtureDef = new FixtureDef();
 
         // wall body definition
@@ -214,7 +224,7 @@ public class GameWorld {
         
         //polygon
         PolygonShape rectShape = new PolygonShape();
-        rectShape.setAsBox(24 / PIXEL_TO_METERS, 24 / PIXEL_TO_METERS);
+        rectShape.setAsBox(24 / PIXELS_TO_METERS, 24 / PIXELS_TO_METERS);
 
         //fixture
         fixtureDef.shape = rectShape;
@@ -253,13 +263,33 @@ public class GameWorld {
         }
         
         this.engine.update(delta);
+        cleanupEntities();
+        
         debugRenderer.render(this.world, camera.combined);
     }
 
     public void addEntity(Entity e) {
         this.engine.addEntity(e);
     }
+    
+    public void removeEntity(Entity e) {
+        this.removedEntities.add(e);
+    }
 
+    public void cleanupEntities() {
+        for (Entity e : this.removedEntities) {
+            this.engine.removeEntity(e);
+            
+            if (bm.has(e)) {
+                Body body = bm.get(e).body;    
+                
+                this.world.destroyBody(body);
+            }
+        }
+        
+        this.removedEntities.clear();
+    }
+    
     public void movePlayer(Vector2 movement) {
         if (movement.isZero(1f)) {
             mm.get(player).isMoving = false;

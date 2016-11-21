@@ -11,9 +11,9 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.pcg.roguelike.entity.components.BodyComponent;
-import com.pcg.roguelike.entity.components.MovementComponent;
-import com.pcg.roguelike.entity.components.SpeedComponent;
+import com.pcg.roguelike.entity.components.physics.BodyComponent;
+import com.pcg.roguelike.entity.components.dynamic.MovementComponent;
+import com.pcg.roguelike.entity.components.dynamic.SpeedComponent;
 
 public class MovementSystem extends IteratingSystem {
     private final ComponentMapper<MovementComponent> mm = ComponentMapper.getFor(MovementComponent.class);
@@ -38,7 +38,7 @@ public class MovementSystem extends IteratingSystem {
         SpeedComponent sc = sm.get(entity);
         if (sc != null) {
             speed = sc.speed;
-            movement.scl(speed);
+            movement = movement.setLength(speed);
         }
         
         if (mm.get(entity).isMoving)

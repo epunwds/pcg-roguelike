@@ -47,11 +47,6 @@ public class Play implements Screen {
     }
 
     @Override
-    public void resize(int width, int height) {
-
-    }
-
-    @Override
     public void pause() {
 
     }
@@ -69,6 +64,10 @@ public class Play implements Screen {
     @Override
     public void dispose() {
         gameWorld.getBox2dWorld().dispose();
+    }
+
+    @Override
+    public void resize(int width, int height) {
     }
 
     public class Input extends InputAdapter {

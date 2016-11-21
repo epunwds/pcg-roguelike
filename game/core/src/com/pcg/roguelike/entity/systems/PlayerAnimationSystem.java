@@ -20,12 +20,12 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
-import com.pcg.roguelike.entity.components.DirectionComponent;
-import com.pcg.roguelike.entity.components.DirectionComponent.Direction;
-import com.pcg.roguelike.entity.components.MovementComponent;
-import com.pcg.roguelike.entity.components.PlayerComponent;
-import com.pcg.roguelike.entity.components.ShootingComponent;
-import com.pcg.roguelike.entity.components.SpriteComponent;
+import com.pcg.roguelike.entity.components.physics.DirectionComponent;
+import com.pcg.roguelike.entity.components.physics.DirectionComponent.Direction;
+import com.pcg.roguelike.entity.components.dynamic.MovementComponent;
+import com.pcg.roguelike.entity.components.player.PlayerComponent;
+import com.pcg.roguelike.entity.components.dynamic.ShootingComponent;
+import com.pcg.roguelike.entity.components.visual.SpriteComponent;
 
 public class PlayerAnimationSystem extends IteratingSystem {
 

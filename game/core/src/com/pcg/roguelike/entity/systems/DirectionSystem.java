@@ -12,12 +12,12 @@ import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.pcg.roguelike.entity.components.BodyComponent;
-import com.pcg.roguelike.entity.components.DirectionComponent;
-import com.pcg.roguelike.entity.components.DirectionComponent.Direction;
-import com.pcg.roguelike.entity.components.MovementComponent;
-import com.pcg.roguelike.entity.components.ShootingComponent;
-import com.pcg.roguelike.entity.components.SpeedComponent;
+import com.pcg.roguelike.entity.components.physics.BodyComponent;
+import com.pcg.roguelike.entity.components.physics.DirectionComponent;
+import com.pcg.roguelike.entity.components.physics.DirectionComponent.Direction;
+import com.pcg.roguelike.entity.components.dynamic.MovementComponent;
+import com.pcg.roguelike.entity.components.dynamic.ShootingComponent;
+import com.pcg.roguelike.entity.components.dynamic.SpeedComponent;
 
 public class DirectionSystem extends IteratingSystem {
 

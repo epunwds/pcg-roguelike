@@ -1,4 +1,4 @@
-package com.pcg.roguelike.entity.components;
+package com.pcg.roguelike.entity.components.dynamic;
 
 import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.math.Vector2;

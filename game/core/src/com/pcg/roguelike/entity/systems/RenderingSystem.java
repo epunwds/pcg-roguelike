@@ -16,10 +16,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.utils.Array;
-import com.pcg.roguelike.entity.components.BodyComponent;
-import com.pcg.roguelike.entity.components.MovementComponent;
-import com.pcg.roguelike.entity.components.SpriteComponent;
-import static com.pcg.roguelike.world.GameWorld.PIXEL_TO_METERS;
+import com.pcg.roguelike.entity.components.physics.BodyComponent;
+import com.pcg.roguelike.entity.components.dynamic.MovementComponent;
+import com.pcg.roguelike.entity.components.visual.SpriteComponent;
 
 public class RenderingSystem extends IteratingSystem {
     private final SpriteBatch batch;
@@ -39,8 +38,8 @@ public class RenderingSystem extends IteratingSystem {
         comparator = new Comparator<Entity>() {
             @Override
             public int compare(Entity entityA, Entity entityB) {
-                return (int) Math.signum(sm.get(entityB).zOrder
-                        - sm.get(entityA).zOrder);
+                return (int) Math.signum(sm.get(entityA).zOrder
+                        - sm.get(entityB).zOrder);
             }
         };
 

@@ -8,8 +8,26 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
  */
 public class BlueEnergyProjectile extends Projectile {
 
+    private static final float SPEED = 1000.0f;
+    private static final int DAMAGE = 35;
+    
     public BlueEnergyProjectile() {
-        super(Projectile.projectileSprites[1], 500.0f);
     }
+
+    @Override
+    public Sprite getSprite() {
+        return Projectile.projectileSprites[1];
+    }
+
+    @Override
+    public float getSpeed() {
+        return SPEED;
+    }
+
+    @Override
+    public int getDamage() {
+        return DAMAGE;
+    }
+    
     
 }

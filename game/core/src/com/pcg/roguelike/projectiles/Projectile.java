@@ -11,11 +11,15 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
-import com.pcg.roguelike.entity.components.BodyComponent;
-import com.pcg.roguelike.entity.components.MovementComponent;
-import com.pcg.roguelike.entity.components.PlayerComponent;
-import com.pcg.roguelike.entity.components.SpeedComponent;
-import com.pcg.roguelike.entity.components.SpriteComponent;
+import com.pcg.roguelike.collision.action.DamageOnCollide;
+import com.pcg.roguelike.collision.action.DisappearOnCollide;
+import com.pcg.roguelike.entity.components.data.OwnerComponent;
+import com.pcg.roguelike.entity.components.dynamic.CollisionActionsComponent;
+import com.pcg.roguelike.entity.components.physics.BodyComponent;
+import com.pcg.roguelike.entity.components.dynamic.MovementComponent;
+import com.pcg.roguelike.entity.components.player.PlayerComponent;
+import com.pcg.roguelike.entity.components.dynamic.SpeedComponent;
+import com.pcg.roguelike.entity.components.visual.SpriteComponent;
 import com.pcg.roguelike.item.weapon.Weapon;
 import com.pcg.roguelike.world.GameWorld;
 
@@ -24,10 +28,6 @@ import com.pcg.roguelike.world.GameWorld;
  * @author cr0s
  */
 public abstract class Projectile {
-    private Sprite sprite;
-    private float speed;
-    private Entity owner;
-    
     static final int NUM_PROJECTILES = 3;
     protected static Sprite[] projectileSprites;
     
@@ -37,17 +37,13 @@ public abstract class Projectile {
         loadSprites();
     }    
     
-    public Projectile(Sprite sprite, float speed) {
-        this.sprite = sprite;
-        this.speed = speed;
+    public Projectile() {
     }
     
-    
     public Entity createEntity(Entity owner, Vector2 position, Vector2 target) {
-        this.owner = owner;
-        
         Entity e = new Entity();
         
+        e.add(new OwnerComponent(owner));
         e.add(new MovementComponent(target, true, true));
         
         BodyDef bodyDef = new BodyDef();
@@ -59,7 +55,7 @@ public abstract class Projectile {
         
         //polygon
         PolygonShape rectShape = new PolygonShape();
-        rectShape.setAsBox(sprite.getWidth() / 2, sprite.getHeight() / 2);
+        rectShape.setAsBox(getSprite().getWidth() / 2, getSprite().getHeight() / 2);
         
         //fixture
         fixtureDef.shape = rectShape;
@@ -67,11 +63,16 @@ public abstract class Projectile {
         fixtureDef.friction = 0.25f;
         fixtureDef.restitution = 1.0f;
         
+        fixtureDef.isSensor = true;
+          
         fixtureDef.filter.categoryBits = (pm.get(owner) != null) ? GameWorld.CATEGORY_PROJECTILE_PLAYER : GameWorld.CATEGORY_PROJECTILE_ENEMY;
+        fixtureDef.filter.maskBits = (pm.get(owner) != null) ? GameWorld.MASK_PROJECTILE_PLAYER : GameWorld.MASK_PROJECTILE_ENEMY;
         
         e.add(new BodyComponent(null, bodyDef, fixtureDef));
-        e.add(new SpeedComponent(this.speed));
-        e.add(new SpriteComponent(sprite, 1));
+        e.add(new SpeedComponent(getSpeed()));
+        e.add(new SpriteComponent(getSprite(), 1));
+        
+        e.add(new CollisionActionsComponent(new DamageOnCollide(), new DisappearOnCollide()));
         
         return e;
     }
@@ -88,5 +89,9 @@ public abstract class Projectile {
             s.setOrigin(s.getWidth() / 2, s.getHeight() / 2);
             projectileSprites[i] = s;
         }
-    }        
+    }       
+    
+    public abstract Sprite getSprite();
+    public abstract float getSpeed();
+    public abstract int getDamage();
 }
