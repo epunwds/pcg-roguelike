@@ -142,8 +142,11 @@ public class GameWorld {
 
         /* Texture generation */
         for (int i = 0; i < TEXTURE_VARIATIONS; i++) {
-            groundTiles[i] = new TextureRegion(texGen.generatePerlinTexture(Color.LIGHT_GRAY, Color.DARK_GRAY, 2, 0.7));
-            wallTiles[i] = new TextureRegion(texGen.generatePerlinTexture(Color.BLACK, Color.BROWN, 2, 0.7));
+            wallTiles[i]  = new TextureRegion(texGen.generateMarbgeTexture(Color.LIGHT_GRAY, Color.BLACK, 1, 10, 2, 4));
+            groundTiles[i]   = new TextureRegion(texGen.generateMetalTexture(Color.GRAY, Color.LIGHT_GRAY, 4, 0.07f, 5));
+            /* Magic method, do not remove */
+            // groundTiles[i]   = new TextureRegion(texGen.generateMetalTexture(Color.LIGHT_GRAY,Color.WHITE , 12, 0.012f, 30));
+
         }
 
         /* Creating TiledMap and filling it with tiles corresponding to the blueprint */
