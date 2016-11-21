@@ -22,11 +22,17 @@ public class Play implements Screen {
     private SpriteBatch batch2;
     private GameWorld gameWorld;
 
+    private int playerClass;
+
+    public Play(int playerClass) {
+        this.playerClass = playerClass;
+    }
+    
     @Override
     public void show() {
         Gdx.input.setInputProcessor(new Input());
 
-        gameWorld = new GameWorld();
+        gameWorld = new GameWorld(playerClass);
         gameWorld.create();
 
         font = new BitmapFont();

@@ -8,7 +8,7 @@ import com.pcg.roguelike.item.Item;
 import com.pcg.roguelike.projectiles.Projectile;
 
 
-public class Weapon extends Item {
+public abstract class Weapon extends Item {
     static final int NUM_WEAPONS = 4;
     protected static Sprite[] itemSprites;
     
@@ -41,4 +41,6 @@ public class Weapon extends Item {
             itemSprites[i] = s;
         }
     }    
+
+    public abstract int getShootingDelay();
 }

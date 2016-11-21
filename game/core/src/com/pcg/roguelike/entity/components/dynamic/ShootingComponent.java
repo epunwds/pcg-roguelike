@@ -13,11 +13,9 @@ public class ShootingComponent implements Component {
     public boolean isShooting;
 
     public int shotTicks;
-    public int shootDelayTicks;
     
-    public ShootingComponent(Vector3 target, int shootDelayTicks) {
+    public ShootingComponent(Vector3 target) {
         this.target = target;
-        this.shootDelayTicks = shootDelayTicks;
     }
 
     public Vector2 getTarget2() {

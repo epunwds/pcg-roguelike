@@ -16,7 +16,6 @@ import com.pcg.roguelike.entity.components.dynamic.ShootingComponent;
 import com.pcg.roguelike.entity.components.data.WeaponComponent;
 import com.pcg.roguelike.item.weapon.Weapon;
 import com.pcg.roguelike.world.GameWorld;
-import static com.pcg.roguelike.world.GameWorld.PIXELS_TO_METERS;
 
 public class ShootingSystem extends IteratingSystem {
     
@@ -27,7 +26,7 @@ public class ShootingSystem extends IteratingSystem {
      public GameWorld world;
      
     public ShootingSystem(GameWorld world) {
-        super(Family.all(ShootingComponent.class).get());
+        super(Family.all(ShootingComponent.class, WeaponComponent.class).get());
         
         this.world = world;
     }
@@ -41,9 +40,6 @@ public class ShootingSystem extends IteratingSystem {
     public void processEntity(Entity entity, float deltaTime) {
         ShootingComponent sc = sm.get(entity);
         
-        if (sc == null)
-            return;
-        
         sc.isShooting = (sc.target != null);
         
         if (!sc.isShooting) {
@@ -51,10 +47,13 @@ public class ShootingSystem extends IteratingSystem {
             return;
         }
         
+        WeaponComponent wc = wm.get(entity);
+        int shootingDelayTicks = wc.weapon.getShootingDelay();        
+        
         /* First shot without a delay */
         if (sc.shotTicks++ == 0) {
-            doShot(entity, new Vector2(sc.target.x * PIXELS_TO_METERS, sc.target.y * PIXELS_TO_METERS));
-        } else if (sc.shotTicks++ >= sc.shootDelayTicks) { /* Next shots are with delay between */
+            doShot(entity, new Vector2(sc.target.x, sc.target.y));
+        } else if (sc.shotTicks++ >= shootingDelayTicks) { /* Next shots are with delay between */
             sc.shotTicks = 0;
         }
     }

@@ -44,6 +44,7 @@ import com.pcg.roguelike.entity.systems.PlayerAnimationSystem;
 import com.pcg.roguelike.entity.systems.RenderingSystem;
 import com.pcg.roguelike.entity.systems.ShootingSystem;
 import com.pcg.roguelike.item.weapon.EnergyStaff;
+import com.pcg.roguelike.item.weapon.StoneSword;
 import com.pcg.roguelike.item.weapon.Weapon;
 import com.pcg.roguelike.world.generator.BSPGenerator;
 import com.pcg.roguelike.world.generator.TextureGenerator;
@@ -108,7 +109,9 @@ public class GameWorld {
         return world;
     }
 
-    public GameWorld() {
+    public GameWorld(int playerClass) {
+        this.playerClass = playerClass;
+        
         rand = new Random(System.currentTimeMillis());
         this.debugRenderer = new Box2DDebugRenderer();
         this.world = new World(new Vector2(0, 0), true);
@@ -235,15 +238,18 @@ public class GameWorld {
         fixtureDef.filter.maskBits = MASK_PLAYER;
         
         this.player = new Entity();
-        player.add(new PlayerComponent());
+        player.add(new PlayerComponent(this.playerClass));
         player.add(new BodyComponent(null, bodyDef, fixtureDef));
 
         player.add(new SpriteComponent(null, 0));
         player.add(new MovementComponent(new Vector2(0, 0)));
         player.add(new SpeedComponent(500f));
-        player.add(new ShootingComponent(null, 15));
+        player.add(new ShootingComponent(null));
         player.add(new DirectionComponent(Direction.DOWN));
-        player.add(new WeaponComponent(new EnergyStaff()));
+        if (playerClass == 0)
+            player.add(new WeaponComponent(new EnergyStaff()));
+        else
+            player.add(new WeaponComponent(new StoneSword()));
         
         engine.addEntity(player);
     }

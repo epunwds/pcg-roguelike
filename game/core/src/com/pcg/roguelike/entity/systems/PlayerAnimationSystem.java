@@ -4,24 +4,17 @@ package com.pcg.roguelike.entity.systems;
  *
  * @author cr0s
  */
-import java.util.Comparator;
 
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
+import com.pcg.roguelike.entity.components.data.WeaponComponent;
 import com.pcg.roguelike.entity.components.physics.DirectionComponent;
-import com.pcg.roguelike.entity.components.physics.DirectionComponent.Direction;
 import com.pcg.roguelike.entity.components.dynamic.MovementComponent;
 import com.pcg.roguelike.entity.components.player.PlayerComponent;
 import com.pcg.roguelike.entity.components.dynamic.ShootingComponent;
@@ -33,12 +26,13 @@ public class PlayerAnimationSystem extends IteratingSystem {
     private ComponentMapper<SpriteComponent> spriteMapper;
     private ComponentMapper<DirectionComponent> dirMapper;
     private final ComponentMapper<MovementComponent> mm = ComponentMapper.getFor(MovementComponent.class);
+    private final ComponentMapper<PlayerComponent> pm = ComponentMapper.getFor(PlayerComponent.class);
+    private ComponentMapper<WeaponComponent> wm = ComponentMapper.getFor(WeaponComponent.class);
     
     private Sprite[][] playerSprites;
     private Sprite[] playerShooting;
 
     private int walkingIndex;
-    private int shootingIndex;
     
     private long ticks;
     
@@ -64,11 +58,17 @@ public class PlayerAnimationSystem extends IteratingSystem {
         SpriteComponent sc = spriteMapper.get(entity);
         int dir = dirMapper.get(entity).dir.getDirectionNum();
         
+        WeaponComponent wc = wm.get(entity);
+        int shootingDelayTicks = wc.weapon.getShootingDelay();
+        
         MovementComponent mc = mm.get(entity);
         boolean isMoving = mc.isMoving;
         
+        PlayerComponent pc = pm.get(entity);
+        int playerClass = pc.playerClass;
+        
         if (!isMoving) {
-            walkingIndex = shootingIndex = 0;
+            walkingIndex = 0;
             ticks = 0 ;
         } else {
             if (ticks++ >= FRAME_PERIOD) {
@@ -78,13 +78,11 @@ public class PlayerAnimationSystem extends IteratingSystem {
             }
         }
         
-        //System.out.println("moving: " + isMoving + " | ticks: " + ticks + " | idx: " + walkingIndex);
-        
         ShootingComponent shootingc = shootingMapper.get(entity);        
         if (shootingc != null && shootingc.isShooting) {
             /* Shooting animation frame lasts half of a delay between shots */
-            if (shootingc.shotTicks <= shootingc.shootDelayTicks / 2) {
-                sc.s = playerShooting[dir];
+            if (shootingc.shotTicks <= shootingDelayTicks / 2) {
+                sc.s = playerShooting[4 * playerClass + dir];
                 return;
             } else {
                 walkingIndex = 0;
@@ -92,7 +90,7 @@ public class PlayerAnimationSystem extends IteratingSystem {
         }
         
         /* Walking animation */
-        sc.s = playerSprites[dir][walkingIndex];
+        sc.s = playerSprites[4 * playerClass + dir][walkingIndex];
     }
     
     private void loadPlayerSprites() {
