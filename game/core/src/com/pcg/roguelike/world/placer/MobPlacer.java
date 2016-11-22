@@ -32,6 +32,10 @@ public class MobPlacer {
     }
     
     private static void placeMobsInRoom(Random rnd, GameWorld world, BSPTree tree, int hardnessLevel) {
+        /* Don't put mobs in spawn room */
+        if (tree.isSpawnRoom())
+            return;
+        
         System.out.println("Room: " + tree);
                         
         for (int i = 0; i < hardnessLevel; i++) {
