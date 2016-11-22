@@ -13,6 +13,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.pcg.roguelike.collision.action.DamageOnCollide;
 import com.pcg.roguelike.collision.action.DisappearOnCollide;
+import com.pcg.roguelike.entity.components.data.DDComponent;
 import com.pcg.roguelike.entity.components.data.LifetimeComponent;
 import com.pcg.roguelike.entity.components.data.OwnerComponent;
 import com.pcg.roguelike.entity.components.dynamic.CollisionActionsComponent;
@@ -73,6 +74,7 @@ public abstract class Projectile {
         e.add(new SpeedComponent(getSpeed()));
         e.add(new SpriteComponent(getSprite(), 1));
         e.add(new LifetimeComponent(getLifetimeTicks()));
+        e.add(new DDComponent(getDamage()));
         e.add(new CollisionActionsComponent(new DamageOnCollide(), new DisappearOnCollide()));
         
         return e;

@@ -16,7 +16,7 @@ import com.pcg.roguelike.projectiles.Projectile;
  */
 public class GhostEnergy extends Weapon {    
     private static final int SHOOTING_DELAY = 25;
-    private static final int DAMAGE = 35;
+    private static final int DAMAGE = 15;
     
     public GhostEnergy() {
         super("Ghost Energy", new BlueEnergyProjectile(DAMAGE));

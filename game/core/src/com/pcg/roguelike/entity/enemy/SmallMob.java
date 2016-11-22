@@ -17,6 +17,7 @@ import com.pcg.roguelike.entity.components.dynamic.ShootingComponent;
 import com.pcg.roguelike.entity.components.dynamic.SpeedComponent;
 import com.pcg.roguelike.entity.components.physics.BodyComponent;
 import com.pcg.roguelike.entity.components.visual.SpriteComponent;
+import com.pcg.roguelike.entity.components.visual.TwoSpritesComponent;
 import com.pcg.roguelike.item.weapon.Weapon;
 import com.pcg.roguelike.item.weapon.enemy.GhostEnergy;
 import com.pcg.roguelike.item.weapon.enemy.SmallSword;
@@ -30,11 +31,11 @@ import com.pcg.roguelike.world.GameWorld;
 public class SmallMob {
     public static int NUM_MOBS = 2;
     
-    static Sprite[] sprites;
+    static Sprite[][] sprites;
     
     private static final SmallMob[] mobs = {
-        new SmallMob("Dwarf Warrior", 0, 35, 500, 2, 5, new SmallSword()),
-        new SmallMob("Blue Ghost", 1, 35, 250, 3, 5, new GhostEnergy()),
+        new SmallMob("Dwarf Warrior", 0, 135, 500, 2, 5, new SmallSword()),
+        new SmallMob("Blue Ghost", 1, 135, 250, 3, 5, new GhostEnergy()),
     };
     
     static {
@@ -60,23 +61,33 @@ public class SmallMob {
     }
     
     private static void loadSprites() {
-        sprites = new Sprite[SmallMob.NUM_MOBS];
+        sprites = new Sprite[SmallMob.NUM_MOBS][];
 
         Texture tex = new Texture(Gdx.files.internal("enemies.png"));
         TextureRegion[][] split = TextureRegion.split(tex, 8, 8);
 
-        sprites[0] = new Sprite(split[4][3]);
-        sprites[1] = new Sprite(split[7][7]);
+        for (int i = 0; i < sprites.length; i++) {
+            sprites[i] = new Sprite[2];
+        }
         
-        /* Scale sprites */
-        for (Sprite sprite : sprites) {
-            sprite.setSize(16, 16);
+        sprites[0][0] = new Sprite(split[4][3]);
+        sprites[0][1] = new Sprite(split[4][3]);
+        
+        sprites[1][0] = new Sprite(split[7][7]);
+        sprites[1][1] = new Sprite(split[7][7]);
+        
+        /* Scale and flip sprites */
+        for (Sprite[] s : sprites) {
+            s[0].setSize(16, 16);
+            s[1].setSize(16, 16);
+            
+            s[1].flip(true, false);
         }
     }
     
     public static Entity createMob(int mobIndex, GameWorld world, Vector2 position) {
         SmallMob mob = mobs[mobIndex];
-        Sprite sprite = sprites[mob.spriteNum];
+        Sprite[] s = sprites[mob.spriteNum];
         
         Entity e = new Entity();
         
@@ -97,7 +108,7 @@ public class SmallMob {
         
         //polygon
         PolygonShape rectShape = new PolygonShape();
-        rectShape.setAsBox(sprite.getWidth() / 2, sprite.getHeight() / 2);
+        rectShape.setAsBox(s[0].getWidth() / 2, s[0].getHeight() / 2);
         
         //fixture
         fixtureDef.shape = rectShape;
@@ -109,7 +120,7 @@ public class SmallMob {
         fixtureDef.filter.maskBits = GameWorld.MASK_MONSTER;
         
         e.add(new BodyComponent(null, bodyDef, fixtureDef));        
-        e.add(new SpriteComponent(sprite, 1));
+        e.add(new TwoSpritesComponent(s[1], s[0], 0));
         
         System.out.println("Created mob: " + mob.name);
         

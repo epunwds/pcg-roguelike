@@ -61,32 +61,34 @@ public class HostilitySystem extends IteratingSystem {
 
         //System.out.println("Raycasting...");
         this.isDirectSight = false;
-        world.getBox2dWorld().rayCast(new RayCastCallback() {
+        if (distance > 1f) {
+            world.getBox2dWorld().rayCast(new RayCastCallback() {
 
-            @Override
-            public float reportRayFixture(Fixture fxtr, Vector2 vctr, Vector2 vctr1, float f) {
-                // System.out.println("Seen fixture: " + fxtr.getFilterData().categoryBits);
+                @Override
+                public float reportRayFixture(Fixture fxtr, Vector2 vctr, Vector2 vctr1, float f) {
+                    // System.out.println("Seen fixture: " + fxtr.getFilterData().categoryBits);
 
-                if (fxtr.getFilterData().categoryBits == GameWorld.CATEGORY_PLAYER) {
-                    HostilitySystem.this.isDirectSight = true;
+                    if (fxtr.getFilterData().categoryBits == GameWorld.CATEGORY_PLAYER) {
+                        HostilitySystem.this.isDirectSight = true;
 
-                    return 0; /* Stop on player */
+                        return 0; /* Stop on player */
 
-                } else {
-                    HostilitySystem.this.isDirectSight = false;
+                    } else {
+                        HostilitySystem.this.isDirectSight = false;
+                    }
+
+                    /* Stop on walls */
+                    if (fxtr.getFilterData().categoryBits == GameWorld.CATEGORY_WALL) {
+                        return 0;
+                    }
+
+                    return -1; /* Filter anything else */
+
                 }
 
-                /* Stop on walls */
-                if (fxtr.getFilterData().categoryBits == GameWorld.CATEGORY_WALL) {
-                    return 0;
-                }
-
-                return -1; /* Filter anything else */
-
-            }
-
-        }, ourPos, playerPos);
-
+            }, ourPos, playerPos);
+        }
+        
         Vector2 target = playerPos.sub(ourPos);
 
         if (distance < shootingRange && isDirectSight) {

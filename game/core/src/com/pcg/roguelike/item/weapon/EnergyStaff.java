@@ -14,7 +14,7 @@ import com.pcg.roguelike.projectiles.Projectile;
  * @author cr0s
  */
 public class EnergyStaff extends Weapon {    
-    private static final int SHOOTING_DELAY = 10;
+    private static final int SHOOTING_DELAY = 20;
     
     public EnergyStaff() {
         super("Energy Staff", new BlueEnergyProjectile());
