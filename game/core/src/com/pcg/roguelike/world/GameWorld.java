@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
@@ -47,7 +48,9 @@ import com.pcg.roguelike.item.weapon.EnergyStaff;
 import com.pcg.roguelike.item.weapon.StoneSword;
 import com.pcg.roguelike.item.weapon.Weapon;
 import com.pcg.roguelike.world.generator.BSPGenerator;
+import com.pcg.roguelike.world.generator.BSPGenerator.BSPTree;
 import com.pcg.roguelike.world.generator.TextureGenerator;
+import com.pcg.roguelike.world.placer.PlayerPlacer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -58,25 +61,26 @@ import java.util.Random;
  * Created by BugDeveloper on 16.11.2016.
  */
 public class GameWorld {
+
     public static final int WIDTH = 60;
     public static final int HEIGHT = 30;
     public static final int TILE_SIZE = 32;
     public static final int TEXTURE_ANTIALIASING = 3;
     public static final int TEXTURE_VARIATIONS = 10;
-    
+
     public static final float PIXELS_TO_METERS = 2;
-    
-    public static final short CATEGORY_PLAYER = 1; 
+
+    public static final short CATEGORY_PLAYER = 1;
     public static final short CATEGORY_WALL = 1 << 1;
     public static final short CATEGORY_PROJECTILE_PLAYER = 1 << 2;
     public static final short CATEGORY_PROJECTILE_ENEMY = 1 << 3;
-    public static final short CATEGORY_ENEMY = 1 << 4; 
-    
+    public static final short CATEGORY_ENEMY = 1 << 4;
+
     public static final short MASK_PLAYER = CATEGORY_WALL | CATEGORY_PROJECTILE_ENEMY;
     public static final short MASK_MONSTER = CATEGORY_WALL | CATEGORY_PLAYER | CATEGORY_PROJECTILE_PLAYER;
     public static final short MASK_PROJECTILE_ENEMY = CATEGORY_WALL | CATEGORY_PLAYER;
     public static final short MASK_PROJECTILE_PLAYER = CATEGORY_WALL | CATEGORY_ENEMY;
-    
+
     private BSPGenerator gen;
     private TextureGenerator texGen;
     private TiledMap map;
@@ -98,9 +102,9 @@ public class GameWorld {
     private Box2DDebugRenderer debugRenderer;
 
     private int playerClass = 0;
-        
+
     private List<Entity> removedEntities = new LinkedList<>();
-    
+
     public TiledMap getMap() {
         return map;
     }
@@ -111,7 +115,7 @@ public class GameWorld {
 
     public GameWorld(int playerClass) {
         this.playerClass = playerClass;
-        
+
         rand = new Random(System.currentTimeMillis());
         this.debugRenderer = new Box2DDebugRenderer();
         this.world = new World(new Vector2(0, 0), true);
@@ -134,7 +138,7 @@ public class GameWorld {
         this.engine.addSystem(new ShootingSystem(this));
         this.engine.addSystem(new CleanupSystem(this));
         this.engine.addSystem(new LifetimeSystem());
-        
+
         this.world.setContactListener(new CollisionSystem(this));
     }
 
@@ -147,8 +151,8 @@ public class GameWorld {
 
         /* Texture generation */
         for (int i = 0; i < TEXTURE_VARIATIONS; i++) {
-            wallTiles[i]  = new TextureRegion(texGen.generateMarbgeTexture(Color.LIGHT_GRAY, Color.BLACK, 1, 10, 2, 4));
-            groundTiles[i]   = new TextureRegion(texGen.generateMetalTexture(Color.GRAY, Color.LIGHT_GRAY, 4, 0.07f, 5));
+            wallTiles[i] = new TextureRegion(texGen.generateMarbgeTexture(Color.LIGHT_GRAY, Color.BLACK, 1, 10, 2, 4));
+            groundTiles[i] = new TextureRegion(texGen.generateMetalTexture(Color.GRAY, Color.LIGHT_GRAY, 4, 0.07f, 5));
             /* Magic method, do not remove */
             // groundTiles[i]   = new TextureRegion(texGen.generateMetalTexture(Color.LIGHT_GRAY,Color.WHITE , 12, 0.012f, 30));
 
@@ -211,7 +215,7 @@ public class GameWorld {
         fixtureDef.restitution = 0;
 
         fixtureDef.filter.categoryBits = CATEGORY_WALL;
-        
+
         bodyDef.position.set((x + 0.5f) * TILE_SIZE, (y + 0.5f) * TILE_SIZE);
 
         Entity wall = new Entity();
@@ -224,10 +228,12 @@ public class GameWorld {
         BodyDef bodyDef = new BodyDef();
         FixtureDef fixtureDef = new FixtureDef();
 
+        Vector2 playerPos = PlayerPlacer.placePlayer(this.rand, this.gen.getBspTree());
+
         bodyDef.type = BodyDef.BodyType.DynamicBody;
-        bodyDef.position.set(5 * GameWorld.TILE_SIZE, 5 * GameWorld.TILE_SIZE);
+        bodyDef.position.set((playerPos.x + 0.5f) * GameWorld.TILE_SIZE, (playerPos.y + 0.5f) * GameWorld.TILE_SIZE);
         bodyDef.fixedRotation = true;
-        
+
         PolygonShape rectShape = new PolygonShape();
         rectShape.setAsBox(16 / PIXELS_TO_METERS, 16 / PIXELS_TO_METERS);
 
@@ -236,7 +242,7 @@ public class GameWorld {
         fixtureDef.friction = 0.25f;
         fixtureDef.filter.categoryBits = CATEGORY_PLAYER;
         fixtureDef.filter.maskBits = MASK_PLAYER;
-        
+
         this.player = new Entity();
         player.add(new PlayerComponent(this.playerClass));
         player.add(new BodyComponent(null, bodyDef, fixtureDef));
@@ -246,13 +252,16 @@ public class GameWorld {
         player.add(new SpeedComponent(500f));
         player.add(new ShootingComponent(null));
         player.add(new DirectionComponent(Direction.DOWN));
-        if (playerClass == 0)
+        if (playerClass == 0) {
             player.add(new WeaponComponent(new EnergyStaff()));
-        else
+        } else {
             player.add(new WeaponComponent(new StoneSword()));
-        
+        }
+
         engine.addEntity(player);
     }
+
+    private ShapeRenderer sr = new ShapeRenderer();
 
     public void render(float delta) {
         Body b = bm.get(player).body;
@@ -260,24 +269,24 @@ public class GameWorld {
             Vector2 playerPos = b.getPosition();
             camera.position.set(playerPos.x, playerPos.y, 0);
         }
-        
+
         camera.update();
-        
+
         if (mapRenderer != null) {
             mapRenderer.setView(camera);
             mapRenderer.render();
         }
-        
+
         this.engine.update(delta);
         cleanupEntities();
         
-        //debugRenderer.render(this.world, camera.combined);
+        debugRenderer.render(this.world, camera.combined);
     }
 
     public void addEntity(Entity e) {
         this.engine.addEntity(e);
     }
-    
+
     public void removeEntity(Entity e) {
         this.removedEntities.add(e);
     }
@@ -285,25 +294,25 @@ public class GameWorld {
     public void cleanupEntities() {
         for (Entity e : this.removedEntities) {
             this.engine.removeEntity(e);
-            
+
             if (bm.has(e)) {
-                Body body = bm.get(e).body;    
-                
+                Body body = bm.get(e).body;
+
                 this.world.destroyBody(body);
             }
         }
-        
+
         this.removedEntities.clear();
     }
-    
+
     public void movePlayer(Vector2 movement) {
         if (movement.isZero(1f)) {
             mm.get(player).isMoving = false;
             return;
         }
-        
+
         mm.get(player).isMoving = true;
-        
+
         Vector2 m = mm.get(player).movement;
         m.x = movement.x;
         m.y = movement.y;

@@ -17,7 +17,6 @@ public class BSPGenerator {
     }
 
     private enum Orientation {
-
         Horizontal, Vertical
     };
 
