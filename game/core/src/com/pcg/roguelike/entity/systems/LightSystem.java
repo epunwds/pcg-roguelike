@@ -14,8 +14,11 @@ public class LightSystem extends box2dLight.PointLight {
 
     public LightSystem(RayHandler rayHandler, int rays, Color color, float distance, float x, float y) {
         super(rayHandler, rays, color, distance, x, y);
+        
+        this.setContactFilter(GameWorld.CATEGORY_LIGHT, (short) 0, GameWorld.MASK_LIGHT);
     }
 
+    @Override
     protected void updateBody() {
         if (body == null || staticLight) return;
 
