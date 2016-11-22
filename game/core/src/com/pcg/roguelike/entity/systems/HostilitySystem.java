@@ -34,7 +34,6 @@ public class HostilitySystem extends IteratingSystem {
     public GameWorld world;
 
     private boolean isDirectSight;
-    private RayCastCallback rccb = new MyRayCastCallback();
 
     public HostilitySystem(GameWorld world) {
         super(Family.all(ShootingComponent.class, SpeedComponent.class, WeaponComponent.class, RangedHostileComponent.class).get());
@@ -61,7 +60,32 @@ public class HostilitySystem extends IteratingSystem {
         float distance = playerPos.dst(ourPos);
 
         //System.out.println("Raycasting...");
-        world.getBox2dWorld().rayCast(this.rccb, ourPos, playerPos);
+        this.isDirectSight = false;
+        world.getBox2dWorld().rayCast(new RayCastCallback() {
+
+            @Override
+            public float reportRayFixture(Fixture fxtr, Vector2 vctr, Vector2 vctr1, float f) {
+                // System.out.println("Seen fixture: " + fxtr.getFilterData().categoryBits);
+
+                if (fxtr.getFilterData().categoryBits == GameWorld.CATEGORY_PLAYER) {
+                    HostilitySystem.this.isDirectSight = true;
+
+                    return 0; /* Stop on player */
+
+                } else {
+                    HostilitySystem.this.isDirectSight = false;
+                }
+
+                /* Stop on walls */
+                if (fxtr.getFilterData().categoryBits == GameWorld.CATEGORY_WALL) {
+                    return 0;
+                }
+
+                return -1; /* Filter anything else */
+
+            }
+
+        }, ourPos, playerPos);
 
         Vector2 target = playerPos.sub(ourPos);
 
@@ -82,8 +106,9 @@ public class HostilitySystem extends IteratingSystem {
                 mc.canRotate = false;
                 mc.isMoving = true;
                 mc.movement = movement;
-            } else
+            } else {
                 stop(entity);
+            }
         }
     }
 
@@ -93,32 +118,5 @@ public class HostilitySystem extends IteratingSystem {
         mc.canRotate = false;
         mc.isMoving = false;
         mc.movement = Vector2.Zero;
-    }
-
-    private class MyRayCastCallback implements RayCastCallback {
-
-        @Override
-        public float reportRayFixture(Fixture fxtr, Vector2 vctr, Vector2 vctr1, float f) {
-            // System.out.println("Seen fixture: " + fxtr.getFilterData().categoryBits);
-
-            if (fxtr.getFilterData().categoryBits == GameWorld.CATEGORY_PLAYER) {
-                HostilitySystem.this.isDirectSight = true;
-
-                System.out.println("See player");
-                return 0; /* Stop on player */
-
-            } else {
-                HostilitySystem.this.isDirectSight = false;
-            }
-
-            /* Stop on walls */
-            if (fxtr.getFilterData().categoryBits == GameWorld.CATEGORY_WALL) {
-                return 0;
-            } else {
-                return -1; /* Filter anything else */
-
-            }
-        }
-
     }
 }
