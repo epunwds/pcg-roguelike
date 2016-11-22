@@ -30,10 +30,11 @@ public class HostilitySystem extends IteratingSystem {
     private final ComponentMapper<BodyComponent> bm = ComponentMapper.getFor(BodyComponent.class);
     private final ComponentMapper<RangedHostileComponent> rhm = ComponentMapper.getFor(RangedHostileComponent.class);
     private final ComponentMapper<MovementComponent> mm = ComponentMapper.getFor(MovementComponent.class);
-    
+
     public GameWorld world;
 
     private boolean isDirectSight;
+    private RayCastCallback rccb = new MyRayCastCallback();
 
     public HostilitySystem(GameWorld world) {
         super(Family.all(ShootingComponent.class, SpeedComponent.class, WeaponComponent.class, RangedHostileComponent.class).get());
@@ -49,7 +50,7 @@ public class HostilitySystem extends IteratingSystem {
     @Override
     public void processEntity(Entity entity, float deltaTime) {
         float speed = scm.get(entity).speed;
-        
+
         Vector2 playerPos = world.getPlayerPos();
         Vector2 ourPos = bm.get(entity).body.getPosition();
 
@@ -59,52 +60,65 @@ public class HostilitySystem extends IteratingSystem {
 
         float distance = playerPos.dst(ourPos);
 
-        world.getBox2dWorld().rayCast(new RayCastCallback() {
-
-            @Override
-            public float reportRayFixture(Fixture fxtr, Vector2 vctr, Vector2 vctr1, float f) {
-                if (fxtr.getFilterData().categoryBits == GameWorld.CATEGORY_PLAYER) {
-                    HostilitySystem.this.isDirectSight = true;
-                    
-                    return 0; /* Stop on player */
-                } else {
-                    HostilitySystem.this.isDirectSight = false;
-                }
-                
-                
-                /* Stop on walls */
-                if (fxtr.getFilterData().categoryBits == GameWorld.CATEGORY_WALL)
-                    return 0;
-                else
-                    return -1; /* Filter anything else */
-            }
-
-        }, ourPos, playerPos);
+        //System.out.println("Raycasting...");
+        world.getBox2dWorld().rayCast(this.rccb, ourPos, playerPos);
 
         Vector2 target = playerPos.sub(ourPos);
-        
-        if (distance < shootingRange) {
+
+        if (distance < shootingRange && isDirectSight) {
             sm.get(entity).target = new Vector3(target.x, target.y, 0);
             sm.get(entity).isShooting = true;
+
+            stop(entity);
         } else {
             sm.get(entity).target = null;
             sm.get(entity).isShooting = false;
+
+            /* Move closer */
+            if (distance < sightRange && isDirectSight) {
+                Vector2 movement = target.cpy().setLength(speed);
+                MovementComponent mc = mm.get(entity);
+
+                mc.canRotate = false;
+                mc.isMoving = true;
+                mc.movement = movement;
+            } else
+                stop(entity);
+        }
+    }
+
+    private void stop(Entity entity) {
+        MovementComponent mc = mm.get(entity);
+
+        mc.canRotate = false;
+        mc.isMoving = false;
+        mc.movement = Vector2.Zero;
+    }
+
+    private class MyRayCastCallback implements RayCastCallback {
+
+        @Override
+        public float reportRayFixture(Fixture fxtr, Vector2 vctr, Vector2 vctr1, float f) {
+            // System.out.println("Seen fixture: " + fxtr.getFilterData().categoryBits);
+
+            if (fxtr.getFilterData().categoryBits == GameWorld.CATEGORY_PLAYER) {
+                HostilitySystem.this.isDirectSight = true;
+
+                System.out.println("See player");
+                return 0; /* Stop on player */
+
+            } else {
+                HostilitySystem.this.isDirectSight = false;
+            }
+
+            /* Stop on walls */
+            if (fxtr.getFilterData().categoryBits == GameWorld.CATEGORY_WALL) {
+                return 0;
+            } else {
+                return -1; /* Filter anything else */
+
+            }
         }
 
-        if (distance < sightRange && isDirectSight) {
-            
-            Vector2 movement = target.cpy().setLength(speed);
-            MovementComponent mc = mm.get(entity);
-            
-            mc.canRotate = false;
-            mc.isMoving = true;
-            mc.movement = movement;
-        } else {
-            MovementComponent mc = mm.get(entity);
-            
-            mc.canRotate = false;
-            mc.isMoving = false;
-            mc.movement = Vector2.Zero;            
-        }
     }
 }

@@ -79,11 +79,14 @@ public class GameWorld {
     public static final short CATEGORY_PROJECTILE_PLAYER = 1 << 2;
     public static final short CATEGORY_PROJECTILE_ENEMY = 1 << 3;
     public static final short CATEGORY_ENEMY = 1 << 4;
+    public static final short CATEGORY_LIGHT = 1 << 5;
 
-    public static final short MASK_PLAYER = CATEGORY_WALL | CATEGORY_PROJECTILE_ENEMY;
-    public static final short MASK_MONSTER = CATEGORY_WALL | CATEGORY_PLAYER | CATEGORY_PROJECTILE_PLAYER;
+    public static final short MASK_PLAYER = CATEGORY_WALL | CATEGORY_PROJECTILE_ENEMY | CATEGORY_ENEMY;
+    public static final short MASK_MONSTER = CATEGORY_WALL | CATEGORY_PLAYER | CATEGORY_PROJECTILE_PLAYER | CATEGORY_ENEMY;
     public static final short MASK_PROJECTILE_ENEMY = CATEGORY_WALL | CATEGORY_PLAYER;
     public static final short MASK_PROJECTILE_PLAYER = CATEGORY_WALL | CATEGORY_ENEMY;
+    public static final short MASK_LIGHT = CATEGORY_WALL | CATEGORY_ENEMY;
+    
 
     private BSPGenerator gen;
     private TextureGenerator texGen;
@@ -298,10 +301,9 @@ public class GameWorld {
         cleanupEntities();
 
         rayHandler.setCombinedMatrix(camera.combined.cpy().scl(32));        
-        rayHandler.update();
-        rayHandler.render();
+        rayHandler.updateAndRender();
 
-        debugRenderer.render(this.world, camera.combined);
+        //debugRenderer.render(this.world, camera.combined);
     }
 
     public void addEntity(Entity e) {

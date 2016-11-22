@@ -14,6 +14,7 @@ import com.pcg.roguelike.entity.components.data.WeaponComponent;
 import com.pcg.roguelike.entity.components.dynamic.RangedHostileComponent;
 import com.pcg.roguelike.entity.components.dynamic.MovementComponent;
 import com.pcg.roguelike.entity.components.dynamic.ShootingComponent;
+import com.pcg.roguelike.entity.components.dynamic.SpeedComponent;
 import com.pcg.roguelike.entity.components.physics.BodyComponent;
 import com.pcg.roguelike.entity.components.visual.SpriteComponent;
 import com.pcg.roguelike.item.weapon.Weapon;
@@ -83,6 +84,7 @@ public class SmallMob {
         e.add(new HealthComponent(mob.hp));
         e.add(new ShootingComponent(null));
         e.add(new WeaponComponent(mob.weapon));
+        e.add(new SpeedComponent(mob.speed));
         
         e.add(new RangedHostileComponent(mob.sightRange * GameWorld.TILE_SIZE, mob.shootingRange * GameWorld.TILE_SIZE));
         
