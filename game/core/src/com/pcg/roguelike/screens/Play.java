@@ -48,7 +48,7 @@ public class Play implements Screen {
 
         batch2.begin();
         font.setColor(Color.WHITE);
-        font.draw(batch2, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 20);
+        font.draw(batch2, "FPS: " + Gdx.graphics.getFramesPerSecond() + " | " + gameWorld.getPlayerPos(), 10, 20);
         batch2.end();
     }
 
