@@ -140,6 +140,9 @@ public class BSPGenerator {
         private int endY;
         private int width;
 
+        private boolean spawnRoom;
+        private boolean bossRoom;
+        
         public int getStartX() {
             return startX;
         }
@@ -172,6 +175,24 @@ public class BSPGenerator {
             return rightChild;
         }
 
+        public boolean isSpawnRoom() {
+            return spawnRoom;
+        }
+
+        public void setSpawnRoom(boolean spawnRoom) {
+            this.spawnRoom = spawnRoom;
+        }
+
+        public boolean isBossRoom() {
+            return bossRoom;
+        }
+
+        public void setBossRoom(boolean bossRoom) {
+            this.bossRoom = bossRoom;
+        }
+
+        
+        
         private int height;
         private BSPTree leftChild, rightChild;
         private float maxPartitionSizeRatio = 1f;
@@ -224,5 +245,12 @@ public class BSPGenerator {
             }
 
         }
+
+        @Override
+        public String toString() {
+            return "BSPTree{" + "sX=" + startX + ", sY=" + startY + ", w=" + width + ", h=" + height + '}';
+        }
+        
+        
     }
 }

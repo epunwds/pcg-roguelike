@@ -31,8 +31,7 @@ public class PlayerPlacer {
     }
     
     private static Vector2 selectPointInRoom(Random rnd, BSPTree node) {
-        //int x = node.getStartX() + 1 + rnd.nextInt(node.getWidth() - 1);
-        //int y = node.getStartY() + 1 + rnd.nextInt(node.getHeight() - 1);
+        node.setSpawnRoom(true);
         
         // Select center
         int x = node.getStartX() + 1 + (node.getWidth() / 2 - 1);

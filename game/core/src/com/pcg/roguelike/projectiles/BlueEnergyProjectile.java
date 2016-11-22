@@ -8,13 +8,17 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
  */
 public class BlueEnergyProjectile extends Projectile {
 
-    private static final float SPEED = 1000.0f;
-    private static final int DAMAGE = 35;
-    private static final int LIFETIME = 50;
+    private float SPEED = 1000.0f;
+    private int damage = 35;
+    private int LIFETIME = 50;
     
     public BlueEnergyProjectile() {
     }
 
+    public BlueEnergyProjectile(int damage) {
+        this.damage = damage;
+    }    
+    
     @Override
     public Sprite getSprite() {
         return Projectile.projectileSprites[1];
@@ -27,7 +31,7 @@ public class BlueEnergyProjectile extends Projectile {
 
     @Override
     public int getDamage() {
-        return DAMAGE;
+        return damage;
     }
 
     @Override

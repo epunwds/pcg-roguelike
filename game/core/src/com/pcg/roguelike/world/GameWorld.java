@@ -38,6 +38,7 @@ import com.pcg.roguelike.entity.components.visual.SpriteComponent;
 import com.pcg.roguelike.entity.components.data.WeaponComponent;
 import com.pcg.roguelike.entity.systems.CleanupSystem;
 import com.pcg.roguelike.entity.systems.DirectionSystem;
+import com.pcg.roguelike.entity.systems.HostilitySystem;
 import com.pcg.roguelike.entity.systems.LifetimeSystem;
 import com.pcg.roguelike.entity.systems.MovementSystem;
 import com.pcg.roguelike.entity.systems.PhysicsSystem;
@@ -50,6 +51,7 @@ import com.pcg.roguelike.item.weapon.Weapon;
 import com.pcg.roguelike.world.generator.BSPGenerator;
 import com.pcg.roguelike.world.generator.BSPGenerator.BSPTree;
 import com.pcg.roguelike.world.generator.TextureGenerator;
+import com.pcg.roguelike.world.placer.MobPlacer;
 import com.pcg.roguelike.world.placer.PlayerPlacer;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -138,7 +140,8 @@ public class GameWorld {
         this.engine.addSystem(new ShootingSystem(this));
         this.engine.addSystem(new CleanupSystem(this));
         this.engine.addSystem(new LifetimeSystem());
-
+        this.engine.addSystem(new HostilitySystem(this));
+        
         this.world.setContactListener(new CollisionSystem(this));
     }
 
@@ -193,6 +196,7 @@ public class GameWorld {
         mapRenderer = new OrthogonalTiledMapRenderer(map);
 
         createPlayer();
+        MobPlacer.placeMobs(rand, this, gen.getBspTree(), 1);
     }
 
     private void createWall(int x, int y) {

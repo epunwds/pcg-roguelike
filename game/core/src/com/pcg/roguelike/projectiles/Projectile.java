@@ -78,7 +78,7 @@ public abstract class Projectile {
         return e;
     }
     
-    protected static void loadSprites() {
+    private static void loadSprites() {
         projectileSprites = new Sprite[Projectile.NUM_PROJECTILES];
 
         Texture tex = new Texture(Gdx.files.internal("projectiles.png"));

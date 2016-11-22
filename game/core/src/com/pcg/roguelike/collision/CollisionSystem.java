@@ -46,7 +46,7 @@ public class CollisionSystem implements ContactListener {
     private void doCollisionAction(Entity ea, Entity eb) {
         if (cm.has(ea)) {
             for (ICollisionAction action : cm.get(ea).actions) {
-                System.out.println("Collision: " + action + " | " + ea + " | " + eb);
+                //System.out.println("Collision: " + action + " | " + ea + " | " + eb);
                 action.onCollide(ea, eb);
             }
         }

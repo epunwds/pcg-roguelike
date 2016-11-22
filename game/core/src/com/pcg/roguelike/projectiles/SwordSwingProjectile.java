@@ -8,11 +8,15 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
  */
 public class SwordSwingProjectile extends Projectile {
 
-    private static final float SPEED = 500.0f;
-    private static final int DAMAGE = 80;
-    private static final int LIFETIME = 20;
+    private float speed = 500.0f;
+    private int damage = 80;
+    private int lifetime = 20;
     
     public SwordSwingProjectile() {
+    }
+    
+    public SwordSwingProjectile(int damage) {
+        this.damage = damage;
     }
 
     @Override
@@ -22,16 +26,16 @@ public class SwordSwingProjectile extends Projectile {
 
     @Override
     public float getSpeed() {
-        return SPEED;
+        return speed;
     }
 
     @Override
     public int getDamage() {
-        return DAMAGE;
+        return damage;
     }
 
     @Override
     public int getLifetimeTicks() {
-        return LIFETIME;
+        return lifetime;
     }
 }
