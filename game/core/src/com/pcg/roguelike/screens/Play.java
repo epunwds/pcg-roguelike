@@ -9,6 +9,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.pcg.roguelike.world.GameWorld;
@@ -27,7 +29,7 @@ public class Play implements Screen {
     public Play(int playerClass) {
         this.playerClass = playerClass;
     }
-    
+
     @Override
     public void show() {
         Gdx.input.setInputProcessor(new Input());
@@ -39,16 +41,60 @@ public class Play implements Screen {
         batch2 = new SpriteBatch();
     }
 
+    private ShapeRenderer sr = new ShapeRenderer();
+
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(100f / 255f, 100f / 255f, 250f / 255f, 1f);
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         gameWorld.render(delta);
 
+        final int bossBarWidth = 180;
+
+        int width = Gdx.graphics.getWidth();
+        int height = Gdx.graphics.getHeight();
+
+        int boxHeight = 24;
+        int hp = gameWorld.getPlayerHp();
+        int totalHp = gameWorld.getPlayerHpTotal();
+
+        sr.setAutoShapeType(true);
+        sr.begin();
+        sr.set(ShapeRenderer.ShapeType.Filled);
+
+        sr.setColor(Color.RED);
+        sr.rect(0, 0, (hp / (float) (totalHp)) * width, boxHeight);
+        sr.end();
+
+        sr.begin();
+        sr.set(ShapeType.Filled);
+
+        if (gameWorld.isBossNearby()) {
+            int bossHp = gameWorld.getBossHp();
+            int bossTotal = gameWorld.getBossHpTotal();
+
+            System.out.println("bossHp " + bossHp + " | bossTotal: " + bossTotal);
+
+            sr.setColor(Color.MAGENTA);
+            sr.rect(width / 2 - bossBarWidth / 2, height - boxHeight - 10, (bossHp / (float) (bossTotal)) * bossBarWidth, boxHeight);
+        }
+
+        sr.end();
+
+        if (gameWorld.isBossNearby()) {
+            int bossHp = gameWorld.getBossHp();
+            int bossTotal = gameWorld.getBossHpTotal();
+            
+            batch2.begin();
+            font.setColor(Color.WHITE);
+            font.draw(batch2, "Boss: " + bossHp + " / " + bossTotal, width / 2 - 10 - bossBarWidth / 2, height - boxHeight - 10);
+            batch2.end();
+        }
+
         batch2.begin();
         font.setColor(Color.WHITE);
-        font.draw(batch2, "FPS: " + Gdx.graphics.getFramesPerSecond() + " | HP: " + gameWorld.getPlayerHp(), 10, 20);
+        font.draw(batch2, "FPS: " + Gdx.graphics.getFramesPerSecond() + " | HP: " + hp, 10, 20);
         batch2.end();
     }
 

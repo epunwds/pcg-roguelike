@@ -58,8 +58,6 @@ public class TextRenderingSystem extends IteratingSystem {
 
                 font.setColor(tc.color);
                 font.draw(batch, tc.text, bc.body.getPosition().x, bc.body.getPosition().y);
-                
-                System.out.println("Text pos: " + bc.body.getPosition());
             }
         }
         

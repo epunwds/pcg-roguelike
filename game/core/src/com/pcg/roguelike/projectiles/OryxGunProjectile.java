@@ -6,22 +6,22 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
  *
  * @author cr0s
  */
-public class BlueEnergyProjectile extends Projectile {
+public class OryxGunProjectile extends Projectile {
 
     private float SPEED = 1000.0f;
     private int damage = 35;
-    private int LIFETIME = 50;
+    private int LIFETIME = 60;
     
-    public BlueEnergyProjectile() {
+    public OryxGunProjectile() {
     }
 
-    public BlueEnergyProjectile(int damage) {
+    public OryxGunProjectile(int damage) {
         this.damage = damage;
     }    
     
     @Override
     public Sprite getSprite() {
-        return Projectile.projectileSprites[1];
+        return Projectile.projectileSprites[3];
     }
 
     @Override

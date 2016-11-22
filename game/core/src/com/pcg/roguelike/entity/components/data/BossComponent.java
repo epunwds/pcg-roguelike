@@ -5,10 +5,6 @@ import com.badlogic.ashley.core.Component;
  *
  * @author Cr0s
  */
-public class HealthComponent implements Component {
-    public int hp;
+public class BossComponent implements Component {
 
-    public HealthComponent(int hp) {
-        this.hp = hp;
-    }
 }

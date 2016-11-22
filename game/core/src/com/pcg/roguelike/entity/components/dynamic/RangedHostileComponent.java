@@ -8,6 +8,8 @@ import com.badlogic.ashley.core.Component;
 public class RangedHostileComponent implements Component {
     public int sightRange, shootingRange;
 
+    public boolean hasDirectSight;
+    
     public RangedHostileComponent(int sightRange, int shootingRande) {
         this.sightRange = sightRange;
         this.shootingRange = shootingRande;

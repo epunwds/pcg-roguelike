@@ -30,7 +30,8 @@ import com.pcg.roguelike.world.GameWorld;
  * @author cr0s
  */
 public abstract class Projectile {
-    static final int NUM_PROJECTILES = 3;
+    static final int NUM_PROJECTILES_SMALL = 3;
+    static final int NUM_PROJECTILES_BIG = 2;
     protected static Sprite[] projectileSprites;
     
     private final ComponentMapper<PlayerComponent> pm = ComponentMapper.getFor(PlayerComponent.class);
@@ -81,17 +82,28 @@ public abstract class Projectile {
     }
     
     private static void loadSprites() {
-        projectileSprites = new Sprite[Projectile.NUM_PROJECTILES];
+        projectileSprites = new Sprite[Projectile.NUM_PROJECTILES_SMALL + Projectile.NUM_PROJECTILES_BIG];
 
         Texture tex = new Texture(Gdx.files.internal("projectiles.png"));
         TextureRegion[][] split = TextureRegion.split(tex, 8, 8);
 
-        for (int i = 0; i < projectileSprites.length; i++) {
+        int i = 0;
+        for (i = 0; i < Projectile.NUM_PROJECTILES_SMALL; i++) {
             Sprite s = new Sprite(split[i][0]);
             s.setSize(16, 16);
             s.setOrigin(s.getWidth() / 2, s.getHeight() / 2);
             projectileSprites[i] = s;
         }
+        
+        Texture tex2 = new Texture(Gdx.files.internal("big_projectiles.png"));
+        TextureRegion[][] split2 = TextureRegion.split(tex2, 48, 8);
+
+        for (int j = 0; j < Projectile.NUM_PROJECTILES_BIG; j++) {
+            Sprite s = new Sprite(split2[j][0]);
+            s.setSize(24, 16);
+            s.setOrigin(s.getWidth() / 2, s.getHeight() / 2);
+            projectileSprites[i + j] = s;
+        }        
     }       
     
     public abstract Sprite getSprite();

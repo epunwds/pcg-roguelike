@@ -8,11 +8,13 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.pcg.roguelike.collision.ICollisionAction;
+import com.pcg.roguelike.entity.components.data.BossComponent;
 import com.pcg.roguelike.entity.components.data.DDComponent;
 import com.pcg.roguelike.entity.components.data.HealthComponent;
 import com.pcg.roguelike.entity.components.physics.BodyComponent;
 import com.pcg.roguelike.entity.components.player.PlayerComponent;
 import com.pcg.roguelike.screens.GameOver;
+import com.pcg.roguelike.screens.GameWin;
 import com.pcg.roguelike.screens.MenuSelectClass;
 import com.pcg.roguelike.world.GameWorld;
 
@@ -26,6 +28,7 @@ public class DamageOnCollide implements ICollisionAction {
     private final ComponentMapper<DDComponent> dm = ComponentMapper.getFor(DDComponent.class);
     private final ComponentMapper<BodyComponent> bm = ComponentMapper.getFor(BodyComponent.class);
     private final ComponentMapper<PlayerComponent> pm = ComponentMapper.getFor(PlayerComponent.class);
+    private final ComponentMapper<BossComponent> bom = ComponentMapper.getFor(BossComponent.class);
     
     @Override
     public void onCollide(Entity a, Entity b) {
@@ -54,6 +57,11 @@ public class DamageOnCollide implements ICollisionAction {
         /* Player dead */
         if (hc.hp == 0 && pm.has(victim)) {
             ((Game) Gdx.app.getApplicationListener()).setScreen(new GameOver());
+        }
+        
+        /* Boss dead */
+        if (hc.hp == 0 && bom.has(victim)) {
+            ((Game) Gdx.app.getApplicationListener()).setScreen(new GameWin());
         }
     }
 }

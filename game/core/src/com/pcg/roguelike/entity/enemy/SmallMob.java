@@ -29,13 +29,15 @@ import com.pcg.roguelike.world.GameWorld;
  * @author cr0s
  */
 public class SmallMob {
-    public static int NUM_MOBS = 2;
+    public static int NUM_MOBS = 3;
     
     static Sprite[][] sprites;
     
     private static final SmallMob[] mobs = {
         new SmallMob("Dwarf Warrior", 0, 135, 500, 2, 5, new SmallSword()),
         new SmallMob("Blue Ghost", 1, 135, 250, 3, 5, new GhostEnergy()),
+        
+        new SmallMob("Oryx Minion", 2, 200, 1000, 2, 10, new SmallSword()),
     };
     
     static {
@@ -76,10 +78,13 @@ public class SmallMob {
         sprites[1][0] = new Sprite(split[7][7]);
         sprites[1][1] = new Sprite(split[7][7]);
         
+        sprites[2][0] = new Sprite(split[6][8]);
+        sprites[2][1] = new Sprite(split[6][8]);
+        
         /* Scale and flip sprites */
         for (Sprite[] s : sprites) {
-            s[0].setSize(16, 16);
-            s[1].setSize(16, 16);
+            s[0].setSize(24, 24);
+            s[1].setSize(24, 24);
             
             s[1].flip(true, false);
         }
@@ -121,8 +126,6 @@ public class SmallMob {
         
         e.add(new BodyComponent(null, bodyDef, fixtureDef));        
         e.add(new TwoSpritesComponent(s[1], s[0], 0));
-        
-        System.out.println("Created mob: " + mob.name);
         
         return e;
     }

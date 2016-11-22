@@ -33,8 +33,6 @@ public class HostilitySystem extends IteratingSystem {
 
     public GameWorld world;
 
-    private boolean isDirectSight;
-
     public HostilitySystem(GameWorld world) {
         super(Family.all(ShootingComponent.class, SpeedComponent.class, WeaponComponent.class, RangedHostileComponent.class).get());
 
@@ -47,7 +45,7 @@ public class HostilitySystem extends IteratingSystem {
     }
 
     @Override
-    public void processEntity(Entity entity, float deltaTime) {
+    public void processEntity(final Entity entity, float deltaTime) {
         float speed = scm.get(entity).speed;
 
         Vector2 playerPos = world.getPlayerPos();
@@ -60,7 +58,7 @@ public class HostilitySystem extends IteratingSystem {
         float distance = playerPos.dst(ourPos);
 
         //System.out.println("Raycasting...");
-        this.isDirectSight = false;
+        rhm.get(entity).hasDirectSight = false;
         if (distance > 1f) {
             world.getBox2dWorld().rayCast(new RayCastCallback() {
 
@@ -69,12 +67,11 @@ public class HostilitySystem extends IteratingSystem {
                     // System.out.println("Seen fixture: " + fxtr.getFilterData().categoryBits);
 
                     if (fxtr.getFilterData().categoryBits == GameWorld.CATEGORY_PLAYER) {
-                        HostilitySystem.this.isDirectSight = true;
-
+                        rhm.get(entity).hasDirectSight = true;
+                        
                         return 0; /* Stop on player */
-
                     } else {
-                        HostilitySystem.this.isDirectSight = false;
+                        rhm.get(entity).hasDirectSight = false;
                     }
 
                     /* Stop on walls */
@@ -83,15 +80,13 @@ public class HostilitySystem extends IteratingSystem {
                     }
 
                     return -1; /* Filter anything else */
-
                 }
-
             }, ourPos, playerPos);
         }
         
         Vector2 target = playerPos.sub(ourPos);
 
-        if (distance < shootingRange && isDirectSight) {
+        if (distance < shootingRange && rhm.get(entity).hasDirectSight) {
             sm.get(entity).target = new Vector3(target.x, target.y, 0);
             sm.get(entity).isShooting = true;
 
@@ -101,7 +96,7 @@ public class HostilitySystem extends IteratingSystem {
             sm.get(entity).isShooting = false;
 
             /* Move closer */
-            if (distance < sightRange && isDirectSight) {
+            if (sightRange != 0 && distance < sightRange && rhm.get(entity).hasDirectSight) {
                 Vector2 movement = target.cpy().setLength(speed);
                 MovementComponent mc = mm.get(entity);
 

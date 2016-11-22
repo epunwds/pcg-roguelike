@@ -5,6 +5,7 @@ import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
+import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -27,9 +28,11 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.utils.Array;
 import com.pcg.roguelike.collision.CollisionSystem;
 import com.pcg.roguelike.collision.action.DamageOnCollide;
 import com.pcg.roguelike.collision.action.DisappearOnCollide;
+import com.pcg.roguelike.entity.components.data.BossComponent;
 import com.pcg.roguelike.entity.components.data.DDComponent;
 import com.pcg.roguelike.entity.components.data.HealthComponent;
 import com.pcg.roguelike.entity.components.data.LifetimeComponent;
@@ -63,6 +66,7 @@ import com.pcg.roguelike.item.weapon.Weapon;
 import com.pcg.roguelike.world.generator.BSPGenerator;
 import com.pcg.roguelike.world.generator.BSPGenerator.BSPTree;
 import com.pcg.roguelike.world.generator.TextureGenerator;
+import com.pcg.roguelike.world.placer.BossPlacer;
 import com.pcg.roguelike.world.placer.MobPlacer;
 import com.pcg.roguelike.world.placer.PlayerPlacer;
 import java.util.ArrayList;
@@ -90,12 +94,16 @@ public class GameWorld {
     public static final short CATEGORY_PROJECTILE_ENEMY = 1 << 3;
     public static final short CATEGORY_ENEMY = 1 << 4;
     public static final short CATEGORY_LIGHT = 1 << 5;
-
+    public static final short CATEGORY_BOSS = 1 << 6;
+    public static final short CATEGORY_TEXT = 1 << 7;
+    
+    public static final short MASK_TEXT = 0;
     public static final short MASK_PLAYER = CATEGORY_WALL | CATEGORY_PROJECTILE_ENEMY | CATEGORY_ENEMY;
     public static final short MASK_MONSTER = CATEGORY_WALL | CATEGORY_PLAYER | CATEGORY_PROJECTILE_PLAYER | CATEGORY_ENEMY;
     public static final short MASK_PROJECTILE_ENEMY = CATEGORY_WALL | CATEGORY_PLAYER;
-    public static final short MASK_PROJECTILE_PLAYER = CATEGORY_WALL | CATEGORY_ENEMY;
+    public static final short MASK_PROJECTILE_PLAYER = CATEGORY_WALL | CATEGORY_ENEMY | CATEGORY_BOSS;
     public static final short MASK_LIGHT = CATEGORY_WALL | CATEGORY_ENEMY;
+    public static final short MASK_BOSS = CATEGORY_WALL | CATEGORY_PLAYER | CATEGORY_PROJECTILE_PLAYER;
 
     private BSPGenerator gen;
     private TextureGenerator texGen;
@@ -126,6 +134,8 @@ public class GameWorld {
     private LightSystem lightSystem;
 
     public static GameWorld instance;
+    
+    private final float BOSS_RADIUS = 8;
     
     public TiledMap getMap() {
         return map;
@@ -221,12 +231,13 @@ public class GameWorld {
 
         createPlayer();
         MobPlacer.placeMobs(rand, this, gen.getBspTree(), 1);
-
+        
+        
         rayHandler = new RayHandler(world);
         rayHandler.setAmbientLight(.1f);
         rayHandler.useDiffuseLight(true);
 
-        lightSystem = new LightSystem(rayHandler, 20, Color.WHITE, 6, 0, 0);
+        lightSystem = new LightSystem(rayHandler, 20, Color.WHITE, 10, 0, 0);
         lightSystem.setSoftnessLength(0f);
         lightSystem.attachToBody(bm.get(player).body);
     }
@@ -265,7 +276,9 @@ public class GameWorld {
         FixtureDef fixtureDef = new FixtureDef();
 
         Vector2 playerPos = PlayerPlacer.placePlayer(this.rand, this.gen.getBspTree());
-
+        BossPlacer.placeBoss(this, playerPos, gen.getBspTree());
+        
+        
         bodyDef.type = BodyDef.BodyType.DynamicBody;
         bodyDef.position.set((playerPos.x + 0.5f) * GameWorld.TILE_SIZE, (playerPos.y + 0.5f) * GameWorld.TILE_SIZE);
         bodyDef.fixedRotation = true;
@@ -290,10 +303,10 @@ public class GameWorld {
         player.add(new DirectionComponent(Direction.DOWN));
         if (playerClass == 0) {
             player.add(new WeaponComponent(new EnergyStaff()));
-            player.add(new HealthComponent(100));
+            player.add(new HealthComponent(getPlayerHpTotal()));
         } else {
             player.add(new WeaponComponent(new StoneSword()));
-            player.add(new HealthComponent(500));
+            player.add(new HealthComponent(getPlayerHpTotal()));
         }
 
         engine.addEntity(player);
@@ -399,6 +412,9 @@ public class GameWorld {
         fixtureDef.density = 0.01f;
         fixtureDef.friction = 0.25f;
         fixtureDef.restitution = 1.0f;
+        
+        fixtureDef.filter.categoryBits = GameWorld.CATEGORY_TEXT;
+        fixtureDef.filter.maskBits = GameWorld.MASK_TEXT;
 
         fixtureDef.isSensor = true;
 
@@ -413,5 +429,47 @@ public class GameWorld {
     
     public int getPlayerHp() {
         return hm.get(player).hp;
+    }
+
+    public int getPlayerHpTotal() {
+        return (this.playerClass == 0) ? 100 : 300;
+    }
+    
+    private Entity getBossEntity() {
+        ImmutableArray<Entity> entities = this.engine.getEntitiesFor(Family.one(BossComponent.class).get());
+        
+        if (entities.size() != 0) {
+            return entities.get(0);
+        }
+        
+        return null;
+    }
+    
+    public boolean isBossNearby() {
+        Vector2 playerPos = this.getPlayerPos();
+        Entity boss = getBossEntity();
+        if (boss == null)
+            return false;
+        
+        Body b = bm.get(boss).body;
+        if (b == null)
+            return false;
+        
+        Vector2 bossPos = b.getPosition();
+        
+        float dist = playerPos.dst(bossPos);
+        return dist <= BOSS_RADIUS * GameWorld.TILE_SIZE;
+    }
+    
+    public int getBossHp() {
+        Entity bossEntity = getBossEntity();
+        if (bossEntity == null)
+            return -1;
+        
+        return hm.get(bossEntity).hp;
+    }
+    
+    public int getBossHpTotal() {
+        return 900;
     }
 }
