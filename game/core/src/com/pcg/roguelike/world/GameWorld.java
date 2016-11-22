@@ -1,5 +1,6 @@
 package com.pcg.roguelike.world;
 
+import box2dLight.RayHandler;
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
@@ -40,6 +41,7 @@ import com.pcg.roguelike.entity.systems.CleanupSystem;
 import com.pcg.roguelike.entity.systems.DirectionSystem;
 import com.pcg.roguelike.entity.systems.HostilitySystem;
 import com.pcg.roguelike.entity.systems.LifetimeSystem;
+import com.pcg.roguelike.entity.systems.LightSystem;
 import com.pcg.roguelike.entity.systems.MovementSystem;
 import com.pcg.roguelike.entity.systems.PhysicsSystem;
 import com.pcg.roguelike.entity.systems.PlayerAnimationSystem;
@@ -107,6 +109,9 @@ public class GameWorld {
 
     private List<Entity> removedEntities = new LinkedList<>();
 
+    private RayHandler rayHandler;
+    private LightSystem lightSystem;
+
     public TiledMap getMap() {
         return map;
     }
@@ -141,7 +146,7 @@ public class GameWorld {
         this.engine.addSystem(new CleanupSystem(this));
         this.engine.addSystem(new LifetimeSystem());
         this.engine.addSystem(new HostilitySystem(this));
-        
+
         this.world.setContactListener(new CollisionSystem(this));
     }
 
@@ -197,6 +202,14 @@ public class GameWorld {
 
         createPlayer();
         MobPlacer.placeMobs(rand, this, gen.getBspTree(), 1);
+
+        rayHandler = new RayHandler(world);
+        rayHandler.setAmbientLight(.1f);
+        rayHandler.useDiffuseLight(true);
+
+        lightSystem = new LightSystem(rayHandler, 20, Color.WHITE, 6, 0, 0);
+        lightSystem.setSoftnessLength(0f);
+        lightSystem.attachToBody(bm.get(player).body);
     }
 
     private void createWall(int x, int y) {
@@ -283,7 +296,11 @@ public class GameWorld {
 
         this.engine.update(delta);
         cleanupEntities();
-        
+
+        rayHandler.setCombinedMatrix(camera.combined.cpy().scl(32));        
+        rayHandler.update();
+        rayHandler.render();
+
         debugRenderer.render(this.world, camera.combined);
     }
 
